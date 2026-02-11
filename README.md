@@ -66,17 +66,17 @@ npm run build:linux  # Linux
 
 ## Scripts
 
-| Command                   | Description                    |
-|---------------------------|--------------------------------|
-| `npm run dev`             | Start development server       |
-| `npm run build`           | Typecheck and build            |
-| `npm run build:mac`       | Build macOS distribution       |
-| `npm run build:win`       | Build Windows distribution     |
-| `npm run build:linux`     | Build Linux distribution       |
-| `npm run typecheck`       | Run TypeScript type checking   |
-| `npm run lint`            | Run ESLint                     |
-| `npm run format`          | Format code with Prettier      |
-| `npm run install-browser` | Install Playwright Chromium    |
+| Command                   | Description                  |
+|---------------------------|------------------------------|
+| `npm run dev`             | Start development server     |
+| `npm run build`           | Typecheck and build          |
+| `npm run build:mac`       | Build macOS distribution     |
+| `npm run build:win`       | Build Windows distribution   |
+| `npm run build:linux`     | Build Linux distribution     |
+| `npm run typecheck`       | Run TypeScript type checking |
+| `npm run lint`            | Run ESLint                   |
+| `npm run format`          | Format code with Prettier    |
+| `npm run install-browser` | Install Playwright Chromium  |
 
 ## AWS Auto Register
 

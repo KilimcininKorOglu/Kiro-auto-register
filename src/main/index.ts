@@ -3667,6 +3667,7 @@ app.whenReady().then(() => {
     emailPassword: string
     refreshToken: string
     clientId: string
+    clientSecret?: string
     skipOutlookActivation?: boolean
     proxyUrl?: string
   }) => {
@@ -3692,7 +3693,8 @@ app.whenReady().then(() => {
         sendLog,
         params.emailPassword,
         params.skipOutlookActivation || false,
-        params.proxyUrl
+        params.proxyUrl,
+        params.clientSecret
       )
       
       return result

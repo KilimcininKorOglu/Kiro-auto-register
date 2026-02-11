@@ -34,6 +34,7 @@ export function AutoRegisterPage() {
     logs,
     concurrency,
     skipOutlookActivation,
+    delayBetweenRegistrations,
     addAccounts,
     clearAccounts,
     updateAccountStatus,
@@ -42,6 +43,7 @@ export function AutoRegisterPage() {
     setIsRunning,
     setConcurrency,
     setSkipOutlookActivation,
+    setDelayBetweenRegistrations,
     requestStop,
     resetStop,
     getStats
@@ -89,6 +91,7 @@ export function AutoRegisterPage() {
           password: parts[1]?.trim() || '',
           refreshToken: parts[2]?.trim() || '',
           clientId: parts[3]?.trim() || '',
+          clientSecret: parts[4]?.trim() || '',
           status: exists ? 'exists' : 'pending'
         })
       }
@@ -220,6 +223,7 @@ export function AutoRegisterPage() {
         emailPassword: account.password,
         refreshToken: account.refreshToken,
         clientId: account.clientId,
+        clientSecret: account.clientSecret,
         skipOutlookActivation: useAutoRegisterStore.getState().skipOutlookActivation,
         proxyUrl: proxyUrl || undefined
       })
@@ -263,19 +267,37 @@ export function AutoRegisterPage() {
     
     setIsRunning(true)
     resetStop()
-    addLog(`========== Starting batch registration (concurrency: ${concurrency}) ==========`)
+    const delay = useAutoRegisterStore.getState().delayBetweenRegistrations
+    addLog(`========== Starting batch registration (concurrency: ${concurrency}, delay: ${delay}s) ==========`)
     addLog(`Pending: ${pendingAccounts.length}, Skipped: ${accounts.length - pendingAccounts.length}`)
     
-    // Execute registration tasks concurrently
+    // Helper function to wait
+    const sleep = (seconds: number) => new Promise(resolve => setTimeout(resolve, seconds * 1000))
+    
+    // Execute registration tasks concurrently with delay
     const runConcurrent = async () => {
       const queue = [...pendingAccounts]
       const running: Promise<void>[] = []
+      let isFirstBatch = true
       
       while (queue.length > 0 || running.length > 0) {
         // Check global stop flag
         if (useAutoRegisterStore.getState().shouldStop) {
           addLog('User stopped registration')
           break
+        }
+        
+        // Add delay before starting new batch (except first batch)
+        if (!isFirstBatch && running.length === 0 && queue.length > 0) {
+          const currentDelay = useAutoRegisterStore.getState().delayBetweenRegistrations
+          if (currentDelay > 0) {
+            addLog(`Waiting ${currentDelay} seconds before next batch...`)
+            await sleep(currentDelay)
+            if (useAutoRegisterStore.getState().shouldStop) {
+              addLog('User stopped registration')
+              break
+            }
+          }
         }
         
         // Fill up to concurrency limit
@@ -288,6 +310,8 @@ export function AutoRegisterPage() {
           })
           running.push(task)
         }
+        
+        isFirstBatch = false
         
         // Wait for any task to complete
         if (running.length > 0) {
@@ -436,6 +460,19 @@ export function AutoRegisterPage() {
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                 <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-sm text-muted-foreground">Delay:</span>
+            <select
+              value={delayBetweenRegistrations}
+              onChange={(e) => setDelayBetweenRegistrations(Number(e.target.value))}
+              disabled={isRunning}
+              className="px-2 py-1.5 border rounded-lg bg-background text-sm w-20"
+            >
+              {[0, 10, 20, 30, 45, 60, 90, 120].map(n => (
+                <option key={n} value={n}>{n}s</option>
               ))}
             </select>
           </div>

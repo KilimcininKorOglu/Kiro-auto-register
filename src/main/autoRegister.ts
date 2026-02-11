@@ -121,7 +121,8 @@ export async function getOutlookVerificationCode(
   refreshToken: string,
   clientId: string,
   log: LogCallback,
-  timeout: number = 120
+  timeout: number = 120,
+  clientSecret?: string
 ): Promise<string | null> {
   log('========== Starting email verification code fetch ==========')
   log(`client_id: ${clientId}`)
@@ -148,6 +149,9 @@ export async function getOutlookVerificationCode(
           tokenBody.append('client_id', clientId)
           tokenBody.append('refresh_token', refreshToken)
           tokenBody.append('grant_type', 'refresh_token')
+          if (clientSecret) {
+            tokenBody.append('client_secret', clientSecret)
+          }
           if (attempt.scope) {
             tokenBody.append('scope', attempt.scope)
           }
@@ -163,8 +167,12 @@ export async function getOutlookVerificationCode(
             accessToken = tokenResult.access_token
             log('Successfully got access_token')
             break
+          } else {
+            const errorText = await tokenResponse.text()
+            log(`Token refresh attempt failed: ${tokenResponse.status} - ${errorText.substring(0, 200)}`)
           }
-        } catch {
+        } catch (e) {
+          log(`Token refresh exception: ${e}`)
           continue
         }
       }
@@ -640,6 +648,7 @@ export async function activateOutlook(
  * @param emailPassword Email password (for Outlook activation)
  * @param skipOutlookActivation Whether to skip Outlook activation
  * @param proxyUrl Proxy address (only for AWS registration, not for Outlook activation and verification code fetch)
+ * @param clientSecret Graph API client secret (required for token refresh)
  */
 export async function autoRegisterAWS(
   email: string,
@@ -648,7 +657,8 @@ export async function autoRegisterAWS(
   log: LogCallback,
   emailPassword?: string,
   skipOutlookActivation: boolean = false,
-  proxyUrl?: string
+  proxyUrl?: string,
+  clientSecret?: string
 ): Promise<{ success: boolean; ssoToken?: string; name?: string; error?: string }> {
   const password = 'admin123456aA!'
   const randomName = generateRandomName()
@@ -824,7 +834,7 @@ export async function autoRegisterAWS(
       // Auto-fetch verification code
       let loginVerificationCode: string | null = null
       if (refreshToken && clientId) {
-        loginVerificationCode = await getOutlookVerificationCode(refreshToken, clientId, log, 120)
+        loginVerificationCode = await getOutlookVerificationCode(refreshToken, clientId, log, 120, clientSecret)
       } else {
         log('Missing refresh_token or client_id, cannot auto-fetch verification code')
       }
@@ -886,7 +896,7 @@ export async function autoRegisterAWS(
       // Auto-fetch verification code
       let verificationCode: string | null = null
       if (refreshToken && clientId) {
-        verificationCode = await getOutlookVerificationCode(refreshToken, clientId, log, 120)
+        verificationCode = await getOutlookVerificationCode(refreshToken, clientId, log, 120, clientSecret)
       } else {
         log('Missing refresh_token or client_id, cannot auto-fetch verification code')
       }

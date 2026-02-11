@@ -6,6 +6,7 @@ export interface RegisterAccount {
   password: string
   refreshToken: string
   clientId: string
+  clientSecret?: string
   status: 'pending' | 'activating' | 'registering' | 'getting_code' | 'success' | 'failed' | 'exists'
   awsName?: string
   ssoToken?: string
@@ -25,6 +26,8 @@ interface AutoRegisterState {
   skipOutlookActivation: boolean
   // Stop flag
   shouldStop: boolean
+  // Delay between registrations (seconds)
+  delayBetweenRegistrations: number
 }
 
 interface AutoRegisterActions {
@@ -44,6 +47,8 @@ interface AutoRegisterActions {
   setConcurrency: (concurrency: number) => void
   // Set skip Outlook activation
   setSkipOutlookActivation: (skip: boolean) => void
+  // Set delay between registrations
+  setDelayBetweenRegistrations: (delay: number) => void
   // Request stop
   requestStop: () => void
   // Reset stop flag
@@ -66,9 +71,10 @@ export const useAutoRegisterStore = create<AutoRegisterStore>()((set, get) => ({
   accounts: [],
   isRunning: false,
   logs: [],
-  concurrency: 3,
+  concurrency: 1,
   skipOutlookActivation: false,
   shouldStop: false,
+  delayBetweenRegistrations: 30,
 
   // Add accounts
   addAccounts: (newAccounts) => {
@@ -118,6 +124,11 @@ export const useAutoRegisterStore = create<AutoRegisterStore>()((set, get) => ({
   // Set skip Outlook activation
   setSkipOutlookActivation: (skip) => {
     set({ skipOutlookActivation: skip })
+  },
+
+  // Set delay between registrations
+  setDelayBetweenRegistrations: (delay) => {
+    set({ delayBetweenRegistrations: Math.max(0, delay) })
   },
 
   // Request stop

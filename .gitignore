@@ -5,3 +5,8 @@ out
 .eslintcache
 *.log*
 electron-v*.zip
+
+# Token scripts (contains secrets)
+scripts/get-outlook-token.js
+get-outlook-token.js
+accounts.txt

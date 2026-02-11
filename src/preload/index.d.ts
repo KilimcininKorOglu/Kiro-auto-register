@@ -500,6 +500,7 @@ interface KiroApi {
     emailPassword: string
     refreshToken: string
     clientId: string
+    clientSecret?: string
     skipOutlookActivation?: boolean
     proxyUrl?: string
   }) => Promise<{

@@ -35,7 +35,7 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
   const [isFilterExpanded, setIsFilterExpanded] = useState(false)
   const [kiroDetected, setKiroDetected] = useState<boolean | null>(null)
 
-  // 自动检测 Kiro 路径
+  // Auto detect Kiro path
   useEffect(() => {
     const detectKiro = async () => {
       if (!kiroPath) {
@@ -53,7 +53,7 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
     detectKiro()
   }, [kiroPath, setKiroPath])
 
-  // 手动选择 Kiro 路径
+  // Manually select Kiro path
   const handleSelectKiroPath = async () => {
     const result = await window.api.selectKiroPath()
     if (result.success) {
@@ -62,7 +62,7 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
     }
   }
 
-  // 获取要导出的账号列表
+  // Get accounts list for export
   const getExportAccounts = () => {
     const accountList = Array.from(accounts.values())
     if (selectedIds.size > 0) {
@@ -71,12 +71,12 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
     return accountList
   }
 
-  // 导出
+  // Export
   const handleExport = (): void => {
     setShowExportDialog(true)
   }
 
-  // 解析 CSV 行（处理引号和逗号）
+  // Parse CSV line (handle quotes and commas)
   const parseCSVLine = (line: string): string[] => {
     const result: string[] = []
     let current = ''
@@ -102,14 +102,14 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
     return result
   }
 
-  // 导入
+  // Import
   const handleImport = async (): Promise<void> => {
     const fileData = await window.api.importFromFile()
 
     if (!fileData) return
 
     try {
-      // 处理多文件导入
+      // Handle multi-file import
       if ('isMultiple' in fileData && fileData.isMultiple) {
         let successCount = 0
         let failedCount = 0
@@ -124,25 +124,25 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
           try {
             const data = JSON.parse(file.content)
             
-            // 单个账号 JSON 格式
+            // Single account JSON format
             if (data.version && data.account && !data.accounts) {
               const result = importSingleAccount(data)
               if (result.success) {
                 successCount++
-              } else if (result.error === '账号已存在') {
+              } else if (result.error === 'Account already exists') {
                 skippedCount++
               } else {
                 failedCount++
               }
             }
-            // 完整导出数据格式
+            // Full export data format
             else if (data.version && data.accounts) {
               const result = importFromExportData(data)
               successCount += result.success
               failedCount += result.failed
               const skippedInfo = result.errors.find(e => e.id === 'skipped')
               if (skippedInfo) {
-                const match = skippedInfo.error.match(/跳过 (\d+) 个/)
+                const match = skippedInfo.error.match(/Skipped (\d+)/)
                 if (match) skippedCount += parseInt(match[1])
               }
             } else {
@@ -153,50 +153,50 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
           }
         }
         
-        let msg = `批量导入完成：成功 ${successCount} 个`
-        if (skippedCount > 0) msg += `，跳过 ${skippedCount} 个已存在`
-        if (failedCount > 0) msg += `，失败 ${failedCount} 个`
+        let msg = `Batch import complete: ${successCount} succeeded`
+        if (skippedCount > 0) msg += `, ${skippedCount} skipped (already exist)`
+        if (failedCount > 0) msg += `, ${failedCount} failed`
         alert(msg)
         return
       }
 
-      // 单文件导入
+      // Single file import
       if (!('content' in fileData)) return
       const { content, format } = fileData
 
       if (format === 'json') {
-        // JSON 格式：完整导出数据或单个账号数据
+        // JSON format: full export data or single account data
         const data = JSON.parse(content)
         
-        // 检查是否为单个账号 JSON 格式
+        // Check if single account JSON format
         if (data.version && data.account && !data.accounts) {
           const result = importSingleAccount(data)
           if (result.success) {
-            alert('导入成功：1 个账号')
+            alert('Import successful: 1 account')
           } else {
-            alert(`导入失败：${result.error}`)
+            alert(`Import failed: ${result.error}`)
           }
           return
         }
         
-        // 完整导出数据格式
+        // Full export data format
         if (data.version && data.accounts) {
           const result = importFromExportData(data)
           const skippedInfo = result.errors.find(e => e.id === 'skipped')
-          const skippedMsg = skippedInfo ? `，${skippedInfo.error}` : ''
-          alert(`导入完成：成功 ${result.success} 个${skippedMsg}`)
+          const skippedMsg = skippedInfo ? `, ${skippedInfo.error}` : ''
+          alert(`Import complete: ${result.success} succeeded${skippedMsg}`)
         } else {
-          alert('无效的 JSON 文件格式')
+          alert('Invalid JSON file format')
         }
       } else if (format === 'csv') {
-        // CSV 格式：邮箱,昵称,登录方式,RefreshToken,ClientId,ClientSecret,Region
+        // CSV format: email,nickname,login_method,RefreshToken,ClientId,ClientSecret,Region
         const lines = content.split('\n').filter(line => line.trim())
         if (lines.length < 2) {
-          alert('CSV 文件为空或只有标题行')
+          alert('CSV file is empty or only has header row')
           return
         }
 
-        // 跳过标题行，解析数据行
+        // Skip header row, parse data rows
         const items = lines.slice(1).map(line => {
           const cols = parseCSVLine(line)
           return {
@@ -211,18 +211,18 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
         }).filter(item => item.email && item.refreshToken)
 
         if (items.length === 0) {
-          alert('未找到有效的账号数据（需要邮箱和 RefreshToken）')
+          alert('No valid account data found (requires email and RefreshToken)')
           return
         }
 
         const result = importAccounts(items)
-        alert(`导入完成：成功 ${result.success} 个，失败 ${result.failed} 个`)
+        alert(`Import complete: ${result.success} succeeded, ${result.failed} failed`)
       } else if (format === 'txt') {
-        // TXT 格式：每行一个账号，格式为 邮箱,RefreshToken 或 邮箱|RefreshToken
+        // TXT format: one account per line, format: email,RefreshToken or email|RefreshToken
         const lines = content.split('\n').filter(line => line.trim() && !line.startsWith('#'))
         
         const items = lines.map(line => {
-          // 支持逗号或竖线分隔
+          // Support comma or pipe separator
           const parts = line.includes('|') ? line.split('|') : line.split(',')
           return {
             email: parts[0]?.trim() || '',
@@ -233,32 +233,32 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
         }).filter(item => item.email && item.refreshToken)
 
         if (items.length === 0) {
-          alert('未找到有效的账号数据（格式：邮箱,RefreshToken）')
+          alert('No valid account data found (format: email,RefreshToken)')
           return
         }
 
         const result = importAccounts(items)
-        alert(`导入完成：成功 ${result.success} 个，失败 ${result.failed} 个`)
+        alert(`Import complete: ${result.success} succeeded, ${result.failed} failed`)
       } else {
-        alert(`不支持的文件格式：${format}`)
+        alert(`Unsupported file format: ${format}`)
       }
     } catch (e) {
       console.error('Import error:', e)
-      alert('解析导入文件失败')
+      alert('Failed to parse import file')
     }
   }
 
-  // 管理分组
+  // Manage groups
   const handleManageGroups = (): void => {
     setShowGroupDialog(true)
   }
 
-  // 管理标签
+  // Manage tags
   const handleManageTags = (): void => {
     setShowTagDialog(true)
   }
 
-  // 编辑账号
+  // Edit account
   const handleEditAccount = (account: Account): void => {
     setEditingAccount(account)
   }
@@ -268,7 +268,7 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
       <div className="flex items-center justify-center h-full">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">加载账号数据...</p>
+          <p className="text-muted-foreground">Loading account data...</p>
         </div>
       </div>
     )
@@ -276,21 +276,21 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
 
   return (
     <div className="flex flex-col h-full">
-      {/* Kiro 路径未检测到的提示 */}
+      {/* Kiro path not detected warning */}
       {kiroDetected === false && (
         <div className="px-6 py-3 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between">
           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
             <Settings className="h-4 w-4" />
-            <span className="text-sm">未检测到 Kiro 安装路径，切换账号后无法自动启动 Kiro</span>
+            <span className="text-sm">Kiro installation path not detected, cannot auto-start Kiro after switching accounts</span>
           </div>
           <Button variant="outline" size="sm" onClick={handleSelectKiroPath} className="gap-1">
             <FolderOpen className="h-4 w-4" />
-            设置路径
+            Set Path
           </Button>
         </div>
       )}
 
-      {/* 顶部工具栏 */}
+      {/* Top toolbar */}
       <header className="flex items-center justify-between gap-4 px-6 py-4 border-b bg-gradient-to-r from-primary/5 to-transparent">
         <div className="flex items-center gap-4">
           {onBack && (
@@ -302,24 +302,24 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
             <div className="p-2 rounded-lg bg-primary/10">
               <Users className="h-5 w-5 text-primary" />
             </div>
-            <h1 className="text-lg font-semibold text-primary">账户管理</h1>
+            <h1 className="text-lg font-semibold text-primary">Account Manager</h1>
           </div>
-          {/* Kiro 路径状态指示 */}
+          {/* Kiro path status indicator */}
           {kiroDetected && kiroPath && (
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={handleSelectKiroPath}
               className="text-xs text-muted-foreground hover:text-foreground gap-1"
-              title={`Kiro 路径: ${kiroPath}`}
+              title={`Kiro path: ${kiroPath}`}
             >
               <Settings className="h-3 w-3" />
-              Kiro 已配置
+              Kiro Configured
             </Button>
           )}
         </div>
         
-        {/* 工具栏 */}
+        {/* Toolbar */}
         <AccountToolbar
           onAddAccount={() => setShowAddDialog(true)}
           onImport={handleImport}
@@ -331,9 +331,9 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
         />
       </header>
 
-      {/* 主内容区域 */}
+      {/* Main content area */}
       <div className="flex-1 overflow-hidden flex flex-col px-6 py-4 gap-4">
-        {/* 账号网格 */}
+        {/* Account grid */}
         <div className="flex-1 overflow-hidden">
           <AccountGrid
             onAddAccount={() => setShowAddDialog(true)}
@@ -342,32 +342,32 @@ export function AccountManager({ onBack }: AccountManagerProps): React.ReactNode
         </div>
       </div>
 
-      {/* 添加账号对话框 */}
+      {/* Add account dialog */}
       <AddAccountDialog
         isOpen={showAddDialog}
         onClose={() => setShowAddDialog(false)}
       />
 
-      {/* 编辑账号对话框 */}
+      {/* Edit account dialog */}
       <EditAccountDialog
         open={!!editingAccount}
         onOpenChange={(open) => !open && setEditingAccount(null)}
         account={editingAccount}
       />
 
-      {/* 分组管理对话框 */}
+      {/* Group management dialog */}
       <GroupManageDialog
         isOpen={showGroupDialog}
         onClose={() => setShowGroupDialog(false)}
       />
 
-      {/* 标签管理对话框 */}
+      {/* Tag management dialog */}
       <TagManageDialog
         isOpen={showTagDialog}
         onClose={() => setShowTagDialog(false)}
       />
 
-      {/* 导出对话框 */}
+      {/* Export dialog */}
       <ExportDialog
         open={showExportDialog}
         onClose={() => setShowExportDialog(false)}

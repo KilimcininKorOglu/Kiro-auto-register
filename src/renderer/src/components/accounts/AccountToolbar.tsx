@@ -71,7 +71,7 @@ export function AccountToolbar({
   const groupMenuRef = useRef<HTMLDivElement>(null)
   const tagMenuRef = useRef<HTMLDivElement>(null)
   
-  // 点击外部关闭菜单
+  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (groupMenuRef.current && !groupMenuRef.current.contains(e.target as Node)) {
@@ -85,7 +85,7 @@ export function AccountToolbar({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
   
-  // 获取选中账户的分组和标签状态
+  // Get selected accounts group status
   const getSelectedAccountsGroupStatus = () => {
     const selectedAccounts = Array.from(selectedIds).map(id => accounts.get(id)).filter(Boolean)
     const groupCounts = new Map<string | undefined, number>()
@@ -115,14 +115,14 @@ export function AccountToolbar({
     return { selectedAccounts, tagCounts, total: selectedAccounts.length }
   }
   
-  // 处理分组操作
+  // Handle group operation
   const handleMoveToGroup = (groupId: string | undefined) => {
     if (selectedIds.size === 0) return
     moveAccountsToGroup(Array.from(selectedIds), groupId)
     setShowGroupMenu(false)
   }
   
-  // 处理标签操作
+  // Handle tag operation
   const handleAddTag = (tagId: string) => {
     if (selectedIds.size === 0) return
     addTagToAccounts(Array.from(selectedIds), tagId)
@@ -138,10 +138,10 @@ export function AccountToolbar({
     const count = tagCounts.get(tagId) || 0
     
     if (count === total) {
-      // 所有选中账户都有此标签，移除
+      // All selected accounts have this tag, remove
       handleRemoveTag(tagId)
     } else {
-      // 部分或无账户有此标签，添加
+      // Some or no accounts have this tag, add
       handleAddTag(tagId)
     }
   }
@@ -170,7 +170,7 @@ export function AccountToolbar({
 
   const handleBatchDelete = (): void => {
     if (selectedCount === 0) return
-    if (confirm(`确定要删除选中的 ${selectedCount} 个账号吗？`)) {
+    if (confirm(`Are you sure you want to delete ${selectedCount} selected accounts?`)) {
       removeAccounts(Array.from(selectedIds))
     }
   }
@@ -185,55 +185,55 @@ export function AccountToolbar({
 
   return (
     <div className="space-y-3">
-      {/* 搜索和主要操作 */}
+      {/* Search and main actions */}
       <div className="flex items-center gap-3">
-        {/* 搜索框 */}
+        {/* Search box */}
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="搜索账号..."
+            placeholder="Search accounts..."
             className="w-full pl-9 pr-4 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             value={filter.search ?? ''}
             onChange={(e) => handleSearch(e.target.value)}
           />
         </div>
 
-        {/* 主要操作按钮 */}
+        {/* Main action buttons */}
         <Button onClick={onAddAccount}>
           <Plus className="h-4 w-4 mr-1" />
-          添加账号
+          Add Account
         </Button>
         <Button variant="outline" onClick={onImport}>
           <Upload className="h-4 w-4 mr-1" />
-          导入
+          Import
         </Button>
         <Button variant="outline" onClick={onExport}>
           <Download className="h-4 w-4 mr-1" />
-          导出
+          Export
         </Button>
       </div>
 
-      {/* 统计和选择操作 */}
+      {/* Stats and selection actions */}
       <div className="flex items-center justify-between">
-        {/* 左侧：统计信息 */}
+        {/* Left: Statistics */}
         <div className="flex items-center gap-4 text-sm">
           <span className="text-muted-foreground">
-            共 <span className="font-medium text-foreground">{stats.total}</span> 个账号
+            Total <span className="font-medium text-foreground">{stats.total}</span> accounts
             {filteredCount !== stats.total && (
-              <span>，已筛选 <span className="font-medium text-foreground">{filteredCount}</span> 个</span>
+              <span>, filtered <span className="font-medium text-foreground">{filteredCount}</span></span>
             )}
           </span>
           {stats.expiringSoonCount > 0 && (
             <Badge variant="destructive" className="gap-1">
-              {stats.expiringSoonCount} 个即将到期
+              {stats.expiringSoonCount} expiring soon
             </Badge>
           )}
         </div>
 
-        {/* 右侧：选择操作和管理 */}
+        {/* Right: Selection actions and management */}
         <div className="flex items-center gap-2">
-          {/* 分组下拉菜单 */}
+          {/* Group dropdown menu */}
           <div className="relative" ref={groupMenuRef}>
             <Button 
               variant={showGroupMenu ? "default" : "ghost"} 
@@ -246,10 +246,10 @@ export function AccountToolbar({
                   onManageGroups()
                 }
               }}
-              title={selectedCount > 0 ? "批量设置分组" : "管理分组"}
+              title={selectedCount > 0 ? "Batch set group" : "Manage groups"}
             >
               <FolderPlus className="h-4 w-4 mr-1" />
-              分组
+              Groups
               {selectedCount > 0 && <ChevronDown className="h-3 w-3 ml-1" />}
             </Button>
             
@@ -257,17 +257,17 @@ export function AccountToolbar({
               <div className="absolute left-0 top-full mt-2 z-50 min-w-[200px] bg-popover border rounded-lg shadow-lg p-2">
                 <div className="absolute -top-2 left-4 w-4 h-4 bg-popover border-l border-t rotate-45" />
                 <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
-                  已选 {selectedCount} 个账户
+                  {selectedCount} accounts selected
                 </div>
                 <div className="border-t my-1" />
                 
-                {/* 移除分组 */}
+                {/* Remove from group */}
                 <button
                   className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-muted text-left"
                   onClick={() => handleMoveToGroup(undefined)}
                 >
                   <X className="h-4 w-4 text-muted-foreground" />
-                  <span>移除分组</span>
+                  <span>Remove from group</span>
                   {(() => {
                     const { groupCounts, selectedAccounts } = getSelectedAccountsGroupStatus()
                     const noGroupCount = groupCounts.get(undefined) || 0
@@ -280,7 +280,7 @@ export function AccountToolbar({
                 
                 <div className="border-t my-1" />
                 
-                {/* 分组列表 */}
+                {/* Group list */}
                 {Array.from(groups.values()).map(group => {
                   const { groupCounts, selectedAccounts } = getSelectedAccountsGroupStatus()
                   const count = groupCounts.get(group.id) || 0
@@ -307,7 +307,7 @@ export function AccountToolbar({
                 
                 {groups.size === 0 && (
                   <div className="text-sm text-muted-foreground px-2 py-2 text-center">
-                    暂无分组
+                    No groups
                   </div>
                 )}
                 
@@ -320,13 +320,13 @@ export function AccountToolbar({
                   }}
                 >
                   <Plus className="h-4 w-4" />
-                  <span>管理分组</span>
+                  <span>Manage Groups</span>
                 </button>
               </div>
             )}
           </div>
           
-          {/* 标签下拉菜单 */}
+          {/* Tag dropdown menu */}
           <div className="relative" ref={tagMenuRef}>
             <Button 
               variant={showTagMenu ? "default" : "ghost"} 
@@ -339,10 +339,10 @@ export function AccountToolbar({
                   onManageTags()
                 }
               }}
-              title={selectedCount > 0 ? "批量设置标签" : "管理标签"}
+              title={selectedCount > 0 ? "Batch set tags" : "Manage tags"}
             >
               <Tag className="h-4 w-4 mr-1" />
-              标签
+              Tags
               {selectedCount > 0 && <ChevronDown className="h-3 w-3 ml-1" />}
             </Button>
             
@@ -350,11 +350,11 @@ export function AccountToolbar({
               <div className="absolute left-0 top-full mt-2 z-50 min-w-[220px] bg-popover border rounded-lg shadow-lg p-2">
                 <div className="absolute -top-2 left-4 w-4 h-4 bg-popover border-l border-t rotate-45" />
                 <div className="text-xs text-muted-foreground px-2 py-1 mb-1">
-                  已选 {selectedCount} 个账户（可多选）
+                  {selectedCount} accounts selected (multi-select)
                 </div>
                 <div className="border-t my-1" />
                 
-                {/* 标签列表 */}
+                {/* Tag list */}
                 <div className="max-h-[300px] overflow-y-auto">
                   {Array.from(tags.values()).map(tag => {
                     const { tagCounts, total } = getSelectedAccountsTagStatus()
@@ -389,7 +389,7 @@ export function AccountToolbar({
                 
                 {tags.size === 0 && (
                   <div className="text-sm text-muted-foreground px-2 py-2 text-center">
-                    暂无标签
+                    No tags
                   </div>
                 )}
                 
@@ -402,7 +402,7 @@ export function AccountToolbar({
                   }}
                 >
                   <Plus className="h-4 w-4" />
-                  <span>管理标签</span>
+                  <span>Manage Tags</span>
                 </button>
               </div>
             )}
@@ -411,30 +411,30 @@ export function AccountToolbar({
             variant={privacyMode ? "default" : "ghost"}
             size="sm"
             onClick={() => setPrivacyMode(!privacyMode)}
-            title={privacyMode ? "关闭隐私模式" : "开启隐私模式"}
+            title={privacyMode ? "Disable privacy mode" : "Enable privacy mode"}
           >
             {privacyMode ? (
               <EyeOff className="h-4 w-4 mr-1" />
             ) : (
               <Eye className="h-4 w-4 mr-1" />
             )}
-            隐私
+            Privacy
           </Button>
-          {/* 筛选按钮与气泡 */}
+          {/* Filter button and bubble */}
           <div className="relative">
             <Button
               variant={isFilterExpanded ? "default" : "ghost"}
               size="sm"
               onClick={onToggleFilter}
-              title="展开/收起高级筛选"
+              title="Expand/collapse advanced filter"
             >
               <Filter className="h-4 w-4 mr-1" />
-              筛选
+              Filter
             </Button>
-            {/* 筛选气泡面板 */}
+            {/* Filter bubble panel */}
             {isFilterExpanded && (
               <div className="absolute right-0 top-full mt-2 z-50 min-w-[600px] bg-popover border rounded-lg shadow-lg">
-                {/* 气泡箭头 */}
+                {/* Bubble arrow */}
                 <div className="absolute -top-2 right-4 w-4 h-4 bg-popover border-l border-t rotate-45" />
                 <AccountFilterPanel />
               </div>
@@ -443,20 +443,20 @@ export function AccountToolbar({
 
           <div className="w-px h-6 bg-border mx-2" />
 
-          {/* 批量操作 */}
+          {/* Batch operations */}
           <Button
             variant="ghost"
             size="sm"
             onClick={handleBatchCheck}
             disabled={isChecking || selectedCount === 0}
-            title="检查账户信息：刷新用量、订阅详情、封禁状态等"
+            title="Check account info: refresh usage, subscription details, ban status, etc."
           >
             {isChecking ? (
               <Loader2 className="h-4 w-4 mr-1 animate-spin" />
             ) : (
               <RefreshCw className="h-4 w-4 mr-1" />
             )}
-            检查
+            Check
           </Button>
           <Button
             variant="ghost"
@@ -464,29 +464,29 @@ export function AccountToolbar({
             className="text-destructive hover:text-destructive"
             onClick={handleBatchDelete}
             disabled={selectedCount === 0}
-            title="删除选中的账号"
+            title="Delete selected accounts"
           >
             <Trash2 className="h-4 w-4 mr-1" />
-            删除
+            Delete
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleBatchRefresh}
             disabled={isRefreshing || selectedCount === 0}
-            title="刷新 Token：仅刷新访问令牌，用于保持登录状态"
+            title="Refresh Token: only refresh access token to maintain login status"
           >
             {isRefreshing ? (
               <Loader2 className="h-4 w-4 mr-1 animate-spin" />
             ) : (
               <RefreshCw className="h-4 w-4 mr-1" />
             )}
-            刷新
+            Refresh
           </Button>
 
           <div className="w-px h-6 bg-border mx-2" />
 
-          {/* 全选 */}
+          {/* Select all */}
           <Button
             variant="ghost"
             size="sm"
@@ -497,7 +497,7 @@ export function AccountToolbar({
             ) : (
               <Square className="h-4 w-4 mr-1" />
             )}
-            {selectedCount > 0 ? `已选 ${selectedCount}` : '全选'}
+            {selectedCount > 0 ? `${selectedCount} selected` : 'Select All'}
           </Button>
         </div>
       </div>

@@ -61,17 +61,17 @@ type LoginType = 'builderid' | 'google' | 'github'
 export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): React.ReactNode {
   const { addAccount, accounts, batchImportConcurrency } = useAccountsStore()
 
-  // 检查账户是否已存在
+  // Check if account already exists
   const isAccountExists = (email: string, userId: string): boolean => {
     return Array.from(accounts.values()).some(
       acc => acc.email === email || acc.userId === userId
     )
   }
 
-  // 导入模式
+  // Import mode
   const [importMode, setImportMode] = useState<ImportMode>('login')
 
-  // OIDC 凭证输入
+  // OIDC credential input
   const [refreshToken, setRefreshToken] = useState('')
   const [clientId, setClientId] = useState('')
   const [clientSecret, setClientSecret] = useState('')
@@ -79,24 +79,24 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
   const [authMethod, setAuthMethod] = useState<'IdC' | 'social'>('IdC')
   const [provider, setProvider] = useState('BuilderId')  // 'BuilderId', 'Github', 'Google'
 
-  // SSO Token 导入
+  // SSO Token import
   const [ssoToken, setSsoToken] = useState('')
   const [batchImportResult, setBatchImportResult] = useState<{ total: number; success: number; failed: number; errors: string[] } | null>(null)
 
-  // OIDC 批量导入
+  // OIDC batch import
   const [oidcImportMode, setOidcImportMode] = useState<'single' | 'batch'>('single')
   const [oidcBatchData, setOidcBatchData] = useState('')
   const [oidcBatchImportResult, setOidcBatchImportResult] = useState<{ total: number; success: number; failed: number; errors: string[] } | null>(null)
 
-  // 验证后的数据（保留用于条件渲染）
+  // Verified data (kept for conditional rendering)
   const [verifiedData, setVerifiedData] = useState<VerifiedData | null>(null)
 
-  // 状态
+  // State
   const [isVerifying, setIsVerifying] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // 登录相关状态
+  // Login related state
   const [loginType, setLoginType] = useState<LoginType>('builderid')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [builderIdLoginData, setBuilderIdLoginData] = useState<{
@@ -108,7 +108,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
   const [copied, setCopied] = useState(false)
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // 清理轮询
+  // Cleanup polling
   useEffect(() => {
     return () => {
       if (pollIntervalRef.current) {
@@ -117,7 +117,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
     }
   }, [])
 
-  // 监听 Social Auth 回调
+  // Listen for Social Auth callback
   useEffect(() => {
     if (!isLoggingIn || loginType === 'builderid') return
 
@@ -125,7 +125,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
       console.log('[AddAccountDialog] Social auth callback:', data)
       
       if (data.error) {
-        setError(`登录失败: ${data.error}`)
+        setError(`Login failed: ${data.error}`)
         setIsLoggingIn(false)
         return
       }
@@ -141,10 +141,10 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
               provider: result.provider
             })
           } else {
-            setError(result.error || 'Token 交换失败')
+            setError(result.error || 'Token exchange failed')
           }
         } catch (e) {
-          setError(e instanceof Error ? e.message : '登录失败')
+          setError(e instanceof Error ? e.message : 'Login failed')
         } finally {
           setIsLoggingIn(false)
         }
@@ -154,7 +154,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
     return () => unsubscribe()
   }, [isLoggingIn, loginType])
 
-  // 处理登录成功
+  // Handle login success
   const handleLoginSuccess = async (tokenData: {
     accessToken: string
     refreshToken: string
@@ -167,7 +167,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
     console.log('[AddAccountDialog] Login successful, verifying credentials...')
     
     try {
-      // 验证凭证并获取账号信息
+      // Verify credentials and get account info
       const result = await window.api.verifyAccountCredentials({
         refreshToken: tokenData.refreshToken,
         clientId: tokenData.clientId || '',
@@ -180,13 +180,13 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
       if (result.success && result.data) {
         const { email, userId } = result.data
         
-        // 检查账户是否已存在
+        // Check if account already exists
         if (isAccountExists(email, userId)) {
-          setError('该账号已存在，无需重复添加')
+          setError('This account already exists, no need to add again')
           return
         }
         
-        // 添加账号
+        // Add account
         const now = Date.now()
         addAccount({
           email,
@@ -239,14 +239,14 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
         resetForm()
         onClose()
       } else {
-        setError(result.error || '验证失败')
+        setError(result.error || 'Verification failed')
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '添加账号失败')
+      setError(e instanceof Error ? e.message : 'Failed to add account')
     }
   }
 
-  // 启动 Builder ID 登录
+  // Start Builder ID login
   const handleStartBuilderIdLogin = async () => {
     setIsLoggingIn(true)
     setError(null)
@@ -263,22 +263,22 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
           interval: result.interval || 5
         })
 
-        // 打开浏览器
+        // Open browser
         window.api.openExternal(result.verificationUri)
 
-        // 开始轮询
+        // Start polling
         startPolling(result.interval || 5)
       } else {
-        setError(result.error || '启动登录失败')
+        setError(result.error || 'Failed to start login')
         setIsLoggingIn(false)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '启动登录失败')
+      setError(e instanceof Error ? e.message : 'Failed to start login')
       setIsLoggingIn(false)
     }
   }
 
-  // 开始轮询 Builder ID 授权
+  // Start polling Builder ID authorization
   const startPolling = (interval: number) => {
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current)
@@ -289,7 +289,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
         const result = await window.api.pollBuilderIdAuth(region)
         
         if (!result.success) {
-          setError(result.error || '授权失败')
+          setError(result.error || 'Authorization failed')
           setIsLoggingIn(false)
           setBuilderIdLoginData(null)
           if (pollIntervalRef.current) {
@@ -318,14 +318,14 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
           setIsLoggingIn(false)
           setBuilderIdLoginData(null)
         }
-        // 如果是 pending 或 slow_down，继续轮询
+        // If pending or slow_down, continue polling
       } catch (e) {
         console.error('[AddAccountDialog] Poll error:', e)
       }
     }, interval * 1000)
   }
 
-  // 取消登录
+  // Cancel login
   const handleCancelLogin = async () => {
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current)
@@ -343,7 +343,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
     setError(null)
   }
 
-  // 启动 Social Auth 登录 (Google/GitHub)
+  // Start Social Auth login (Google/GitHub)
   const handleStartSocialLogin = async (socialProvider: 'Google' | 'Github') => {
     setIsLoggingIn(true)
     setError(null)
@@ -352,17 +352,17 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
       const result = await window.api.startSocialLogin(socialProvider)
       
       if (!result.success) {
-        setError(result.error || '启动登录失败')
+        setError(result.error || 'Failed to start login')
         setIsLoggingIn(false)
       }
-      // 成功后等待回调
+      // Wait for callback on success
     } catch (e) {
-      setError(e instanceof Error ? e.message : '启动登录失败')
+      setError(e instanceof Error ? e.message : 'Failed to start login')
       setIsLoggingIn(false)
     }
   }
 
-  // 复制 user_code
+  // Copy user_code
   const handleCopyUserCode = async () => {
     if (builderIdLoginData?.userCode) {
       await navigator.clipboard.writeText(builderIdLoginData.userCode)
@@ -371,7 +371,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
     }
   }
 
-  // 从本地配置导入
+  // Import from local config
   const handleImportFromLocal = async () => {
     try {
       const result = await window.api.loadKiroCredentials()
@@ -384,28 +384,28 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
         setProvider(result.data.provider || 'BuilderId')
         setError(null)
       } else {
-        setError(result.error || '导入失败')
+        setError(result.error || 'Import failed')
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '导入失败')
+      setError(e instanceof Error ? e.message : 'Import failed')
     }
   }
 
-  // 从 SSO Token 导入并添加账号（支持批量）
+  // Import from SSO Token and add account (supports batch)
   const handleSsoImport = async () => {
     if (!ssoToken.trim()) {
-      setError('请输入 x-amz-sso_authn 的值')
+      setError('Please enter the x-amz-sso_authn value')
       return
     }
 
-    // 解析多个 Token（每行一个）
+    // Parse multiple tokens (one per line)
     const tokens = ssoToken
       .split('\n')
       .map(t => t.trim())
       .filter(t => t.length > 0)
 
     if (tokens.length === 0) {
-      setError('请输入至少一个 Token')
+      setError('Please enter at least one token')
       return
     }
 
@@ -415,7 +415,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
 
     const importResult = { total: tokens.length, success: 0, failed: 0, errors: [] as string[], failedIndices: [] as number[] }
 
-    // 单个 Token 导入函数
+    // Single token import function
     const importSingleToken = async (token: string, index: number): Promise<void> => {
       try {
         const result = await window.api.importFromSsoToken(token, region)
@@ -423,13 +423,13 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
         if (result.success && result.data) {
           const { email, userId } = result.data
           
-          // 检查账户是否已存在（已存在的也从输入框中移除）
+          // Check if account already exists (also remove from input if exists)
           if (email && userId && isAccountExists(email, userId)) {
-            importResult.errors.push(`#${index + 1}: ${email} 已存在`)
+            importResult.errors.push(`#${index + 1}: ${email} already exists`)
             return
           }
           
-          // 添加账号
+          // Add account
           const now = Date.now()
           addAccount({
             email: email || '',
@@ -479,24 +479,24 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
         } else {
           importResult.failed++
           importResult.failedIndices.push(index)
-          importResult.errors.push(`#${index + 1}: ${result.error?.message || '导入失败'}`)
+          importResult.errors.push(`#${index + 1}: ${result.error?.message || 'Import failed'}`)
         }
       } catch (e) {
         importResult.failed++
         importResult.failedIndices.push(index)
-        importResult.errors.push(`#${index + 1}: ${e instanceof Error ? e.message : '导入失败'}`)
+        importResult.errors.push(`#${index + 1}: ${e instanceof Error ? e.message : 'Import failed'}`)
       }
     }
 
     try {
-      // 并发控制：使用配置的并发数，避免 API 限流
+      // Concurrency control: use configured concurrency to avoid API rate limiting
       const BATCH_SIZE = batchImportConcurrency
       for (let i = 0; i < tokens.length; i += BATCH_SIZE) {
         const batch = tokens.slice(i, i + BATCH_SIZE)
         await Promise.allSettled(
           batch.map((token, batchIndex) => importSingleToken(token, i + batchIndex))
         )
-        // 批次间添加短暂延迟
+        // Add short delay between batches
         if (i + BATCH_SIZE < tokens.length) {
           await new Promise(resolve => setTimeout(resolve, 100))
         }
@@ -504,37 +504,37 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
       
       setBatchImportResult(importResult)
       
-      // 如果全部成功，关闭弹窗
+      // If all successful, close dialog
       if (importResult.failed === 0) {
         resetForm()
         onClose()
       } else {
-        // 保留失败的 Token 在输入框中
+        // Keep failed tokens in input
         const failedTokens = importResult.failedIndices.map(i => tokens[i])
         if (failedTokens.length > 0) {
           setSsoToken(failedTokens.join('\n'))
         }
         if (importResult.success > 0) {
-          setError(`成功导入 ${importResult.success} 个，失败 ${importResult.failed} 个`)
+          setError(`Successfully imported ${importResult.success}, failed ${importResult.failed}`)
         } else {
-          setError(`全部导入失败 (${importResult.failed} 个)`)
+          setError(`All imports failed (${importResult.failed})`)
         }
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'SSO 导入失败')
+      setError(e instanceof Error ? e.message : 'SSO import failed')
     } finally {
       setIsVerifying(false)
     }
   }
 
-  // OIDC 批量导入
+  // OIDC batch import
   const handleOidcBatchAdd = async () => {
     if (!oidcBatchData.trim()) {
-      setError('请输入凭证数据')
+      setError('Please enter credential data')
       return
     }
 
-    // 解析 JSON 数据
+    // Parse JSON data
     let credentials: Array<{
       refreshToken: string
       clientId?: string
@@ -548,12 +548,12 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
       const parsed = JSON.parse(oidcBatchData.trim())
       credentials = Array.isArray(parsed) ? parsed : [parsed]
     } catch {
-      setError('JSON 格式错误，请检查输入')
+      setError('JSON format error, please check input')
       return
     }
 
     if (credentials.length === 0) {
-      setError('请输入至少一个凭证')
+      setError('Please enter at least one credential')
       return
     }
 
@@ -563,17 +563,17 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
 
     const importResult = { total: credentials.length, success: 0, failed: 0, errors: [] as string[], failedIndices: [] as number[] }
 
-    // 单个凭证导入函数
+    // Single credential import function
     const importSingleCredential = async (cred: typeof credentials[0], index: number): Promise<void> => {
       try {
         if (!cred.refreshToken) {
           importResult.failed++
           importResult.failedIndices.push(index)
-          importResult.errors.push(`#${index + 1}: 缺少 refreshToken`)
+          importResult.errors.push(`#${index + 1}: Missing refreshToken`)
           return
         }
 
-        // 根据 provider 自动确定 authMethod
+        // Auto-determine authMethod based on provider
         const credProvider = cred.provider || 'BuilderId'
         const credAuthMethod = cred.authMethod || (credProvider === 'BuilderId' ? 'IdC' : 'social')
 
@@ -590,12 +590,12 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
           const { email, userId } = result.data
           
           if (isAccountExists(email, userId)) {
-            // 已存在的不记入失败，也从输入框中移除
-            importResult.errors.push(`#${index + 1}: ${email} 已存在`)
+            // Existing accounts don't count as failed, also remove from input
+            importResult.errors.push(`#${index + 1}: ${email} already exists`)
             return
           }
           
-          // 根据 provider 确定 idp 和 authMethod
+          // Determine idp and authMethod based on provider
           const provider = (cred.provider || 'BuilderId') as 'BuilderId' | 'Github' | 'Google'
           const idpMap: Record<string, 'BuilderId' | 'Github' | 'Google'> = {
             'BuilderId': 'BuilderId',
@@ -603,7 +603,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
             'Google': 'Google'
           }
           const idp = idpMap[provider] || 'BuilderId'
-          // GitHub 和 Google 使用 social 认证方式
+          // GitHub and Google use social auth method
           const authMethod = cred.authMethod || (provider === 'BuilderId' ? 'IdC' : 'social')
           
           const now = Date.now()
@@ -659,25 +659,25 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
           importResult.failed++
           importResult.failedIndices.push(index)
           const err = result.error as { message?: string } | string | undefined
-          const errorMsg = typeof err === 'object' ? (err?.message || '验证失败') : (err || '验证失败')
+          const errorMsg = typeof err === 'object' ? (err?.message || 'Verification failed') : (err || 'Verification failed')
           importResult.errors.push(`#${index + 1}: ${errorMsg}`)
         }
       } catch (e) {
         importResult.failed++
         importResult.failedIndices.push(index)
-        importResult.errors.push(`#${index + 1}: ${e instanceof Error ? e.message : '导入失败'}`)
+        importResult.errors.push(`#${index + 1}: ${e instanceof Error ? e.message : 'Import failed'}`)
       }
     }
 
     try {
-      // 并发控制：使用配置的并发数，避免 API 限流
+      // Concurrency control: use configured concurrency to avoid API rate limiting
       const BATCH_SIZE = batchImportConcurrency
       for (let i = 0; i < credentials.length; i += BATCH_SIZE) {
         const batch = credentials.slice(i, i + BATCH_SIZE)
         await Promise.allSettled(
           batch.map((cred, batchIndex) => importSingleCredential(cred, i + batchIndex))
         )
-        // 批次间添加短暂延迟，进一步避免限流
+        // Add short delay between batches to further avoid rate limiting
         if (i + BATCH_SIZE < credentials.length) {
           await new Promise(resolve => setTimeout(resolve, 100))
         }
@@ -689,33 +689,33 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
         resetForm()
         onClose()
       } else {
-        // 保留失败的凭证在输入框中
+        // Keep failed credentials in input
         const failedCredentials = importResult.failedIndices.map(i => credentials[i])
         if (failedCredentials.length > 0) {
           setOidcBatchData(JSON.stringify(failedCredentials, null, 2))
         }
         if (importResult.success > 0) {
-          setError(`成功导入 ${importResult.success} 个，失败 ${importResult.failed} 个`)
+          setError(`Successfully imported ${importResult.success}, failed ${importResult.failed}`)
         } else {
-          setError(`全部导入失败 (${importResult.failed} 个)`)
+          setError(`All imports failed (${importResult.failed})`)
         }
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'OIDC 批量导入失败')
+      setError(e instanceof Error ? e.message : 'OIDC batch import failed')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // OIDC 凭证添加账号（验证并添加）
+  // OIDC credential add account (verify and add)
   const handleOidcAdd = async () => {
     if (!refreshToken) {
-      setError('请填写 Refresh Token')
+      setError('Please fill in Refresh Token')
       return
     }
-    // 社交登录不需要 clientId 和 clientSecret
+    // Social login doesn't need clientId and clientSecret
     if (authMethod !== 'social' && (!clientId || !clientSecret)) {
-      setError('请填写 Client ID 和 Client Secret')
+      setError('Please fill in Client ID and Client Secret')
       return
     }
 
@@ -735,13 +735,13 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
       if (result.success && result.data) {
         const { email, userId } = result.data
         
-        // 检查账户是否已存在
+        // Check if account already exists
         if (isAccountExists(email, userId)) {
-          setError('该账号已存在，无需重复添加')
+          setError('This account already exists, no need to add again')
           return
         }
         
-        // 直接添加账号
+        // Add account directly
         const now = Date.now()
         addAccount({
           email,
@@ -793,10 +793,10 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
         resetForm()
         onClose()
       } else {
-        setError(result.error || '验证失败')
+        setError(result.error || 'Verification failed')
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '添加失败')
+      setError(e instanceof Error ? e.message : 'Add failed')
     } finally {
       setIsSubmitting(false)
     }
@@ -813,7 +813,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
     setSsoToken('')
     setVerifiedData(null)
     setError(null)
-    // 清理登录状态
+    // Clean up login state
     setLoginType('builderid')
     setIsLoggingIn(false)
     setBuilderIdLoginData(null)
@@ -833,16 +833,16 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
       <Card className="relative w-full max-w-lg max-h-[90vh] overflow-auto z-10">
         <CardHeader className="pb-4 border-b">
           <div className="flex flex-row items-center justify-between">
-            <CardTitle className="text-xl font-bold">添加账号</CardTitle>
+            <CardTitle className="text-xl font-bold">Add Account</CardTitle>
             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">选择一种方式来添加您的 Kiro 账号</p>
+          <p className="text-sm text-muted-foreground mt-1">Choose a method to add your Kiro account</p>
         </CardHeader>
 
         <CardContent className="space-y-6 pt-6">
-          {/* 导入模式切换 */}
+          {/* Import mode switch */}
           <div className="grid grid-cols-3 gap-1 p-1 bg-muted/50 rounded-xl border">
             <button
               className={`py-2 px-3 text-sm rounded-lg transition-all duration-200 font-medium ${
@@ -853,7 +853,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
               onClick={() => { setImportMode('login'); setError(null) }}
               disabled={!!verifiedData || isLoggingIn}
             >
-              在线登录
+              Online Login
             </button>
             <button
               className={`py-2 px-3 text-sm rounded-lg transition-all duration-200 font-medium ${
@@ -864,7 +864,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
               onClick={() => { setImportMode('oidc'); setError(null) }}
               disabled={!!verifiedData || isLoggingIn}
             >
-              OIDC 凭证
+              OIDC Credentials
             </button>
             <button
               className={`py-2 px-3 text-sm rounded-lg transition-all duration-200 font-medium ${
@@ -879,15 +879,15 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
             </button>
           </div>
 
-          {/* 登录模式 */}
+          {/* Login mode */}
           {importMode === 'login' && !verifiedData && (
             <div className="space-y-4">
-              {/* 登录中状态 - Builder ID */}
+              {/* Logging in state - Builder ID */}
               {isLoggingIn && builderIdLoginData && (
                 <div className="space-y-4">
                   <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
                     <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
-                      请在浏览器中完成登录，并输入以下代码：
+                      Please complete login in browser and enter the following code:
                     </p>
                     <div className="flex items-center justify-center gap-2">
                       <code className="text-2xl font-bold tracking-widest bg-white dark:bg-gray-800 px-4 py-2 rounded border">
@@ -897,14 +897,14 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                         variant="outline" 
                         size="icon"
                         onClick={handleCopyUserCode}
-                        title="复制代码"
+                        title="Copy code"
                       >
                         {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                       </Button>
                     </div>
                     <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
                       <Loader2 className="h-3 w-3 animate-spin" />
-                      等待授权中...
+                      Waiting for authorization...
                     </div>
                   </div>
                   
@@ -915,29 +915,29 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                       onClick={() => window.api.openExternal(builderIdLoginData.verificationUri)}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      重新打开浏览器
+                      Reopen Browser
                     </Button>
                     <Button 
                       variant="destructive" 
                       className="flex-1"
                       onClick={handleCancelLogin}
                     >
-                      取消登录
+                      Cancel Login
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* 登录中状态 - Social Auth */}
+              {/* Logging in state - Social Auth */}
               {isLoggingIn && !builderIdLoginData && (
                 <div className="space-y-4">
                   <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-500" />
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      请在浏览器中完成登录...
+                      Please complete login in browser...
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      登录完成后会自动返回
+                      Will return automatically after login
                     </p>
                   </div>
                   
@@ -946,21 +946,21 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                     className="w-full"
                     onClick={handleCancelLogin}
                   >
-                    取消登录
+                    Cancel Login
                   </Button>
                 </div>
               )}
 
-              {/* 未登录状态 - 显示登录选项 */}
+              {/* Not logged in state - Show login options */}
               {!isLoggingIn && (
                 <div className="space-y-4 py-2">
                   <div className="text-center mb-6">
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Check className="w-6 h-6 text-primary" />
                     </div>
-                    <h3 className="text-lg font-semibold">选择登录方式</h3>
+                    <h3 className="text-lg font-semibold">Choose Login Method</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      支持多种方式快捷登录
+                      Multiple quick login methods supported
                     </p>
                   </div>
                   
@@ -982,8 +982,8 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                         </svg>
                       </div>
                       <div className="flex flex-col items-start">
-                        <span className="text-sm font-semibold text-foreground">Google 账号</span>
-                        <span className="text-xs text-muted-foreground">使用 Google 账号快捷登录</span>
+                        <span className="text-sm font-semibold text-foreground">Google Account</span>
+                        <span className="text-xs text-muted-foreground">Quick login with Google account</span>
                       </div>
                     </button>
 
@@ -1001,8 +1001,8 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                         </svg>
                       </div>
                       <div className="flex flex-col items-start">
-                        <span className="text-sm font-semibold text-foreground">GitHub 账号</span>
-                        <span className="text-xs text-muted-foreground">使用 GitHub 账号快捷登录</span>
+                        <span className="text-sm font-semibold text-foreground">GitHub Account</span>
+                        <span className="text-xs text-muted-foreground">Quick login with GitHub account</span>
                       </div>
                     </button>
 
@@ -1021,7 +1021,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                       </div>
                       <div className="flex flex-col items-start">
                         <span className="text-sm font-semibold text-foreground">AWS Builder ID</span>
-                        <span className="text-xs text-muted-foreground">使用 AWS Builder ID 登录</span>
+                        <span className="text-xs text-muted-foreground">Login with AWS Builder ID</span>
                       </div>
                     </button>
                   </div>
@@ -1030,7 +1030,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
             </div>
           )}
 
-          {/* SSO Token 导入模式 */}
+          {/* SSO Token import mode */}
           {importMode === 'sso' && !verifiedData && (
             <div className="space-y-5">
               <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20">
@@ -1039,11 +1039,11 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                       <Info className="w-4 h-4" />
                    </div>
                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-1.5">如何获取 Token?</p>
+                      <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-1.5">How to get Token?</p>
                       <ol className="text-xs text-blue-600/90 dark:text-blue-400/90 list-decimal list-inside space-y-1.5">
-                        <li>在浏览器中访问并登录: <a href="https://view.awsapps.com/start/#/device?user_code=PQCF-FCCN/start/#/device?user_code=PQCF-FCCN" target="_blank" className="underline hover:text-blue-800 font-medium">view.awsapps.com/start/#/device?user_code=PQCF-FCCN</a></li>
-                        <li>按 F12 打开开发者工具 → Application → Cookies</li>
-                        <li>找到并复制 <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900/40 rounded font-mono text-[10px]">x-amz-sso_authn</code> 的值</li>
+                        <li>Visit and login in browser: <a href="https://view.awsapps.com/start/#/device?user_code=PQCF-FCCN/start/#/device?user_code=PQCF-FCCN" target="_blank" className="underline hover:text-blue-800 font-medium">view.awsapps.com/start/#/device?user_code=PQCF-FCCN</a></li>
+                        <li>Press F12 to open DevTools - Application - Cookies</li>
+                        <li>Find and copy the value of <code className="px-1 py-0.5 bg-blue-100 dark:bg-blue-900/40 rounded font-mono text-[10px]">x-amz-sso_authn</code></li>
                       </ol>
                    </div>
                 </div>
@@ -1053,17 +1053,17 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-1">
                     x-amz-sso_authn <span className="text-destructive">*</span>
-                    <span className="text-xs text-muted-foreground font-normal ml-2">支持批量导入，每行一个 Token</span>
+                    <span className="text-xs text-muted-foreground font-normal ml-2">Supports batch import, one token per line</span>
                   </label>
                   <textarea
                     className="w-full min-h-[120px] px-3 py-2.5 text-sm rounded-xl border border-input bg-background/50 ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none font-mono"
-                    placeholder="粘贴 Token 内容，每行一个&#10;eyJlbmMiOiJBMjU2...&#10;eyJlbmMiOiJBMjU2...&#10;eyJlbmMiOiJBMjU2..."
+                    placeholder="Paste token content, one per line&#10;eyJlbmMiOiJBMjU2...&#10;eyJlbmMiOiJBMjU2...&#10;eyJlbmMiOiJBMjU2..."
                     value={ssoToken}
                     onChange={(e) => { setSsoToken(e.target.value); setBatchImportResult(null) }}
                   />
                   {ssoToken.trim() && (
                     <p className="text-xs text-muted-foreground">
-                      已输入 {ssoToken.split('\n').filter(t => t.trim()).length} 个 Token
+                      {ssoToken.split('\n').filter(t => t.trim()).length} tokens entered
                     </p>
                   )}
                 </div>
@@ -1082,11 +1082,11 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                 </div>
               </div>
 
-              {/* 批量导入结果 */}
+              {/* Batch import result */}
               {batchImportResult && (
                 <div className={`p-3 rounded-lg text-sm ${batchImportResult.failed > 0 ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'}`}>
                   <p className={`font-medium ${batchImportResult.failed > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-green-700 dark:text-green-300'}`}>
-                    导入结果: 成功 {batchImportResult.success}/{batchImportResult.total}
+                    Import result: {batchImportResult.success}/{batchImportResult.total} succeeded
                   </p>
                   {batchImportResult.errors.length > 0 && (
                     <ul className="mt-2 text-xs text-amber-600 dark:text-amber-400 space-y-0.5 max-h-20 overflow-y-auto">
@@ -1107,36 +1107,36 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                 {isVerifying ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    正在并发导入 {ssoToken.split('\n').filter(t => t.trim()).length} 个账号...
+                    Importing {ssoToken.split('\n').filter(t => t.trim()).length} accounts concurrently...
                   </>
                 ) : (
                   ssoToken.split('\n').filter(t => t.trim()).length > 1 
-                    ? `批量导入 ${ssoToken.split('\n').filter(t => t.trim()).length} 个账号`
-                    : '导入并验证'
+                    ? `Batch import ${ssoToken.split('\n').filter(t => t.trim()).length} accounts`
+                    : 'Import & Verify'
                 )}
               </Button>
             </div>
           )}
 
-          {/* OIDC 凭证输入模式 */}
+          {/* OIDC credential input mode */}
           {importMode === 'oidc' && !verifiedData && (
             <div className="space-y-5">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold">输入 OIDC 凭证</h3>
+                <h3 className="text-sm font-semibold">Enter OIDC Credentials</h3>
                 <div className="flex items-center gap-2">
-                  {/* 单个/批量 切换 */}
+                  {/* Single/Batch toggle */}
                   <div className="flex bg-muted/50 rounded-lg p-0.5">
                     <button
                       className={`px-2.5 py-1 text-xs rounded-md transition-all ${oidcImportMode === 'single' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground hover:text-foreground'}`}
                       onClick={() => { setOidcImportMode('single'); setOidcBatchImportResult(null) }}
                     >
-                      单个
+                      Single
                     </button>
                     <button
                       className={`px-2.5 py-1 text-xs rounded-md transition-all ${oidcImportMode === 'batch' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground hover:text-foreground'}`}
                       onClick={() => { setOidcImportMode('batch'); setOidcBatchImportResult(null) }}
                     >
-                      批量
+                      Batch
                     </button>
                   </div>
                   {oidcImportMode === 'single' && (
@@ -1148,19 +1148,19 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                       onClick={handleImportFromLocal}
                     >
                       <Download className="h-3 w-3 mr-1" />
-                      本地导入
+                      Local Import
                     </Button>
                   )}
                 </div>
               </div>
 
-              {/* 单个导入模式 */}
+              {/* Single import mode */}
               {oidcImportMode === 'single' && (
                 <>
                   <div className="space-y-4">
-                    {/* 登录类型选择 */}
+                    {/* Login type selection */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">登录类型</label>
+                      <label className="text-sm font-medium">Login Type</label>
                       <div className="flex gap-2">
                         <button
                           type="button"
@@ -1179,7 +1179,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                       </div>
                       {authMethod === 'social' && (
                         <p className="text-xs text-muted-foreground">
-                          社交登录不需要 Client ID 和 Client Secret
+                          Social login doesn't need Client ID and Client Secret
                         </p>
                       )}
                     </div>
@@ -1190,13 +1190,13 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                       </label>
                       <textarea
                         className="w-full min-h-[80px] px-3 py-2.5 text-sm rounded-xl border border-input bg-background/50 ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none font-mono"
-                        placeholder="粘贴 Refresh Token..."
+                        placeholder="Paste Refresh Token..."
                         value={refreshToken}
                         onChange={(e) => setRefreshToken(e.target.value)}
                       />
                     </div>
 
-                    {/* IdC 登录需要 Client ID、Client Secret 和 Region */}
+                    {/* IdC login needs Client ID, Client Secret and Region */}
                     {authMethod !== 'social' && (
                       <>
                         <div className="grid grid-cols-2 gap-4">
@@ -1245,21 +1245,21 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                 </>
               )}
 
-              {/* 批量导入模式 */}
+              {/* Batch import mode */}
               {oidcImportMode === 'batch' && (
                 <>
                   <div className="p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20">
                     <p className="text-xs text-blue-600 dark:text-blue-400">
-                      支持 JSON 数组格式。必填: <code className="px-1 bg-blue-100 dark:bg-blue-900/40 rounded">refreshToken</code>。
-                      可选: <code className="px-1 bg-blue-100 dark:bg-blue-900/40 rounded">provider</code> (BuilderId/Github/Google)、
-                      <code className="px-1 bg-blue-100 dark:bg-blue-900/40 rounded">clientId</code>、
+                      Supports JSON array format. Required: <code className="px-1 bg-blue-100 dark:bg-blue-900/40 rounded">refreshToken</code>.
+                      Optional: <code className="px-1 bg-blue-100 dark:bg-blue-900/40 rounded">provider</code> (BuilderId/Github/Google),
+                      <code className="px-1 bg-blue-100 dark:bg-blue-900/40 rounded">clientId</code>,
                       <code className="px-1 bg-blue-100 dark:bg-blue-900/40 rounded">clientSecret</code>
                     </p>
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium flex items-center gap-2">
-                      JSON 凭证数据 <span className="text-destructive">*</span>
+                      JSON Credential Data <span className="text-destructive">*</span>
                     </label>
                     <textarea
                       className="w-full min-h-[180px] px-3 py-2.5 text-sm rounded-xl border border-input bg-background/50 ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none font-mono text-xs"
@@ -1286,18 +1286,18 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                       try {
                         const parsed = JSON.parse(oidcBatchData.trim())
                         const count = Array.isArray(parsed) ? parsed.length : 1
-                        return <p className="text-xs text-muted-foreground">已输入 {count} 个凭证</p>
+                        return <p className="text-xs text-muted-foreground">{count} credentials entered</p>
                       } catch {
-                        return <p className="text-xs text-destructive">JSON 格式错误</p>
+                        return <p className="text-xs text-destructive">Invalid JSON format</p>
                       }
                     })()}
                   </div>
 
-                  {/* 批量导入结果 */}
+                  {/* Batch import result */}
                   {oidcBatchImportResult && (
                     <div className={`p-3 rounded-lg text-sm ${oidcBatchImportResult.failed > 0 ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'}`}>
                       <p className={`font-medium ${oidcBatchImportResult.failed > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-green-700 dark:text-green-300'}`}>
-                        导入结果: 成功 {oidcBatchImportResult.success}/{oidcBatchImportResult.total}
+                        Import result: {oidcBatchImportResult.success}/{oidcBatchImportResult.total} succeeded
                       </p>
                       {oidcBatchImportResult.errors.length > 0 && (
                         <ul className="mt-2 text-xs text-amber-600 dark:text-amber-400 space-y-0.5 max-h-20 overflow-y-auto">
@@ -1313,7 +1313,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
             </div>
           )}
 
-          {/* 错误信息 */}
+          {/* Error message */}
           {error && (
             <div className="p-3 bg-destructive/10 text-destructive rounded-xl text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
               <div className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0" />
@@ -1321,11 +1321,11 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
             </div>
           )}
 
-          {/* 提交按钮 - 只在 OIDC 模式显示 */}
+          {/* Submit button - Only show in OIDC mode */}
           {importMode === 'oidc' && (
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onClose} className="rounded-xl h-10 px-6">
-                取消
+                Cancel
               </Button>
               {oidcImportMode === 'single' ? (
                 <Button 
@@ -1334,7 +1334,7 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                   className="rounded-xl h-10 px-6"
                 >
                   {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  确认添加
+                  Confirm Add
                 </Button>
               ) : (
                 <Button 
@@ -1345,16 +1345,16 @@ export function AddAccountDialog({ isOpen, onClose }: AddAccountDialogProps): Re
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      正在并发导入...
+                      Importing concurrently...
                     </>
                   ) : (
                     (() => {
                       try {
                         const parsed = JSON.parse(oidcBatchData.trim())
                         const count = Array.isArray(parsed) ? parsed.length : 1
-                        return `批量导入 ${count} 个账号`
+                        return `Batch import ${count} accounts`
                       } catch {
-                        return '批量导入'
+                        return 'Batch Import'
                       }
                     })()
                   )}

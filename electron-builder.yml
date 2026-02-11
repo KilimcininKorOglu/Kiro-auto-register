@@ -23,8 +23,8 @@ win:
   signAndEditExecutable: false
 nsis:
   artifactName: ${name}-${version}-${arch}-setup.${ext}
-  shortcutName: Kiro 账号管理器
-  uninstallDisplayName: Kiro 账号管理器
+  shortcutName: Kiro Account Manager
+  uninstallDisplayName: Kiro Account Manager
   createDesktopShortcut: always
   oneClick: false
   allowToChangeInstallationDirectory: true

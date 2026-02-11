@@ -5,16 +5,16 @@ import { Users, CheckCircle, AlertTriangle, Clock, Zap, Shield, Fingerprint, Fol
 import kiroLogo from '@/assets/kiro-high-resolution-logo-transparent.png'
 import { cn } from '@/lib/utils'
 
-// 订阅类型颜色映射
+// Subscription type color mapping
 const getSubscriptionColor = (type: string, title?: string): string => {
   const text = (title || type).toUpperCase()
-  // KIRO PRO+ / PRO_PLUS - 紫色
+  // KIRO PRO+ / PRO_PLUS - Purple
   if (text.includes('PRO+') || text.includes('PRO_PLUS') || text.includes('PROPLUS')) return 'bg-purple-500'
-  // KIRO POWER - 金色
+  // KIRO POWER - Gold
   if (text.includes('POWER')) return 'bg-amber-500'
-  // KIRO PRO - 蓝色
+  // KIRO PRO - Blue
   if (text.includes('PRO')) return 'bg-blue-500'
-  // KIRO FREE - 灰色
+  // KIRO FREE - Gray
   return 'bg-gray-500'
 }
 
@@ -22,14 +22,14 @@ export function HomePage() {
   const { accounts, getStats, darkMode } = useAccountsStore()
   const stats = getStats()
 
-  // 计算额度统计
+  // Calculate usage statistics
   const usageStats = useMemo(() => {
     let totalLimit = 0
     let totalUsed = 0
     let validAccountCount = 0
 
     Array.from(accounts.values()).forEach(account => {
-      // 只统计正常状态的账号
+      // Only count accounts with active status
       if (account.status === 'active' && account.usage) {
         const limit = account.usage.limit ?? 0
         const used = account.usage.current ?? 0
@@ -55,28 +55,28 @@ export function HomePage() {
 
   const statCards = [
     { 
-      label: '总账号数', 
+      label: 'Total Accounts', 
       value: stats.total, 
       icon: Users, 
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10'
     },
     { 
-      label: '正常账号', 
+      label: 'Active Accounts', 
       value: stats.activeCount, 
       icon: CheckCircle, 
       color: 'text-green-500',
       bgColor: 'bg-green-500/10'
     },
     { 
-      label: '已封禁', 
+      label: 'Banned', 
       value: stats.byStatus?.error || 0, 
       icon: AlertTriangle, 
       color: 'text-red-500',
       bgColor: 'bg-red-500/10'
     },
     { 
-      label: '即将过期', 
+      label: 'Expiring Soon', 
       value: stats.expiringSoonCount, 
       icon: Clock, 
       color: 'text-amber-500',
@@ -84,7 +84,7 @@ export function HomePage() {
     },
   ]
 
-  // 获取当前活跃账号
+  // Get current active account
   const activeAccount = Array.from(accounts.values()).find(a => a.isActive)
 
   return (
@@ -100,8 +100,8 @@ export function HomePage() {
             className={cn("h-14 w-auto transition-all", darkMode && "invert brightness-0")} 
           />
           <div>
-            <h1 className="text-2xl font-bold text-primary">欢迎使用 Kiro 账户管理器</h1>
-            <p className="text-muted-foreground">管理你的 Kiro IDE 账号，一键切换，高效开发</p>
+            <h1 className="text-2xl font-bold text-primary">Welcome to Kiro Account Manager</h1>
+            <p className="text-muted-foreground">Manage your Kiro IDE accounts, switch with one click, develop efficiently</p>
           </div>
         </div>
       </div>
@@ -136,9 +136,9 @@ export function HomePage() {
               <div className="p-2 rounded-lg bg-primary/10">
                 <BarChart3 className="h-4 w-4 text-primary" />
               </div>
-              额度统计
+              Usage Statistics
               <span className="text-xs font-normal text-muted-foreground">
-                (基于 {usageStats.validAccountCount} 个有效账号)
+                (Based on {usageStats.validAccountCount} valid accounts)
               </span>
             </CardTitle>
           </CardHeader>
@@ -147,36 +147,36 @@ export function HomePage() {
               <div className="p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <TrendingUp className="h-4 w-4 text-blue-500" />
-                  <span className="text-xs text-muted-foreground">总额度</span>
+                  <span className="text-xs text-muted-foreground">Total Quota</span>
                 </div>
                 <p className="text-xl font-bold">{usageStats.totalLimit.toLocaleString()}</p>
               </div>
               <div className="p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <Activity className="h-4 w-4 text-orange-500" />
-                  <span className="text-xs text-muted-foreground">已使用</span>
+                  <span className="text-xs text-muted-foreground">Used</span>
                 </div>
                 <p className="text-xl font-bold">{usageStats.totalUsed.toLocaleString()}</p>
               </div>
               <div className="p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <Zap className="h-4 w-4 text-green-500" />
-                  <span className="text-xs text-muted-foreground">剩余额度</span>
+                  <span className="text-xs text-muted-foreground">Remaining</span>
                 </div>
                 <p className="text-xl font-bold text-green-600">{usageStats.remaining.toLocaleString()}</p>
               </div>
               <div className="p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-2 mb-1">
                   <BarChart3 className="h-4 w-4 text-purple-500" />
-                  <span className="text-xs text-muted-foreground">使用率</span>
+                  <span className="text-xs text-muted-foreground">Usage Rate</span>
                 </div>
                 <p className="text-xl font-bold">{usageStats.percentUsed.toFixed(1)}%</p>
               </div>
             </div>
-            {/* 进度条 */}
+            {/* Progress bar */}
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>总体使用进度</span>
+                <span>Overall Usage Progress</span>
                 <span>{usageStats.totalUsed.toLocaleString()} / {usageStats.totalLimit.toLocaleString()}</span>
               </div>
               <div className="h-3 bg-muted rounded-full overflow-hidden">
@@ -201,11 +201,11 @@ export function HomePage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Zap className="h-4 w-4 text-primary" />
-              当前使用账号
+              Current Active Account
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* 基本信息 */}
+            {/* Basic info */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
@@ -229,11 +229,11 @@ export function HomePage() {
               </div>
             </div>
 
-            {/* 详细信息网格 */}
+            {/* Detailed info grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t">
-              {/* 用量 */}
+              {/* Usage */}
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">本月用量</p>
+                <p className="text-xs text-muted-foreground">Monthly Usage</p>
                 <p className="text-sm font-medium">
                   {activeAccount.usage?.current || 0} / {activeAccount.usage?.limit || 0}
                 </p>
@@ -251,35 +251,35 @@ export function HomePage() {
                 </div>
               </div>
 
-              {/* 订阅剩余 */}
+              {/* Subscription remaining */}
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">订阅剩余</p>
+                <p className="text-xs text-muted-foreground">Subscription Remaining</p>
                 <p className="text-sm font-medium">
                   {activeAccount.subscription?.daysRemaining != null 
-                    ? `${activeAccount.subscription.daysRemaining} 天`
-                    : '永久'}
+                    ? `${activeAccount.subscription.daysRemaining} days`
+                    : 'Permanent'}
                 </p>
               </div>
 
-              {/* Token 状态 */}
+              {/* Token status */}
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Token 状态</p>
+                <p className="text-xs text-muted-foreground">Token Status</p>
                 {(() => {
                   const expiresAt = activeAccount.credentials?.expiresAt
-                  if (!expiresAt) return <p className="text-sm font-medium text-muted-foreground">未知</p>
+                  if (!expiresAt) return <p className="text-sm font-medium text-muted-foreground">Unknown</p>
                   const now = Date.now()
                   const remaining = expiresAt - now
-                  if (remaining <= 0) return <p className="text-sm font-medium text-red-500">已过期</p>
+                  if (remaining <= 0) return <p className="text-sm font-medium text-red-500">Expired</p>
                   const minutes = Math.floor(remaining / 60000)
-                  if (minutes < 60) return <p className="text-sm font-medium text-amber-500">{minutes} 分钟</p>
+                  if (minutes < 60) return <p className="text-sm font-medium text-amber-500">{minutes} min</p>
                   const hours = Math.floor(minutes / 60)
-                  return <p className="text-sm font-medium text-green-500">{hours} 小时</p>
+                  return <p className="text-sm font-medium text-green-500">{hours} hr</p>
                 })()}
               </div>
 
-              {/* 登录方式 */}
+              {/* Login method */}
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">登录方式</p>
+                <p className="text-xs text-muted-foreground">Login Method</p>
                 <p className="text-sm font-medium">
                   {activeAccount.credentials?.authMethod === 'social' 
                     ? (activeAccount.credentials?.provider || 'Social')
@@ -288,67 +288,67 @@ export function HomePage() {
               </div>
             </div>
 
-            {/* 订阅详情 */}
+            {/* Subscription details */}
             <div className="pt-3 border-t space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">订阅详情</p>
+              <p className="text-xs font-medium text-muted-foreground">Subscription Details</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">订阅类型:</span>
+                  <span className="text-muted-foreground">Subscription Type:</span>
                   <span className="font-medium">{activeAccount.subscription?.title || activeAccount.subscription?.type || 'Free'}</span>
                 </div>
                 {activeAccount.subscription?.rawType && (
                   <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">原始类型:</span>
+                    <span className="text-muted-foreground">Raw Type:</span>
                     <span className="font-mono text-[10px]">{activeAccount.subscription.rawType}</span>
                   </div>
                 )}
                 {activeAccount.subscription?.expiresAt && (
                   <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">到期时间:</span>
-                    <span className="font-medium">{new Date(activeAccount.subscription.expiresAt).toLocaleDateString('zh-CN')}</span>
+                    <span className="text-muted-foreground">Expires:</span>
+                    <span className="font-medium">{new Date(activeAccount.subscription.expiresAt).toLocaleDateString('en-US')}</span>
                   </div>
                 )}
                 {activeAccount.subscription?.upgradeCapability && (
                   <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">可升级:</span>
+                    <span className="text-muted-foreground">Upgradeable:</span>
                     <span className="font-medium">{activeAccount.subscription.upgradeCapability}</span>
                   </div>
                 )}
                 {activeAccount.subscription?.overageCapability && (
                   <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">超额能力:</span>
+                    <span className="text-muted-foreground">Overage:</span>
                     <span className="font-medium">{activeAccount.subscription.overageCapability}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* 额度明细 */}
+            {/* Quota details */}
             {(activeAccount.usage?.baseLimit || activeAccount.usage?.freeTrialLimit || activeAccount.usage?.bonuses?.length) && (
               <div className="pt-3 border-t space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">额度明细</p>
+                <p className="text-xs font-medium text-muted-foreground">Quota Details</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {/* 基础额度 */}
+                  {/* Base quota */}
                   {activeAccount.usage?.baseLimit !== undefined && activeAccount.usage.baseLimit > 0 && (
                     <div className="flex items-center gap-2 text-xs">
                       <div className="w-2 h-2 rounded-full bg-blue-500" />
-                      <span className="text-muted-foreground">基础额度:</span>
+                      <span className="text-muted-foreground">Base Quota:</span>
                       <span className="font-medium">
                         {activeAccount.usage.baseCurrent ?? 0} / {activeAccount.usage.baseLimit}
                       </span>
                     </div>
                   )}
-                  {/* 试用额度 */}
+                  {/* Trial quota */}
                   {activeAccount.usage?.freeTrialLimit !== undefined && activeAccount.usage.freeTrialLimit > 0 && (
                     <div className="flex items-center gap-2 text-xs">
                       <div className="w-2 h-2 rounded-full bg-purple-500" />
-                      <span className="text-muted-foreground">试用额度:</span>
+                      <span className="text-muted-foreground">Trial Quota:</span>
                       <span className="font-medium">
                         {activeAccount.usage.freeTrialCurrent ?? 0} / {activeAccount.usage.freeTrialLimit}
                       </span>
                       {activeAccount.usage.freeTrialExpiry && (
                         <span className="text-muted-foreground/70 text-[10px]">
-                          (至 {(() => {
+                          (until {(() => {
                             const d = activeAccount.usage.freeTrialExpiry as unknown
                             try { return (typeof d === 'string' ? d : new Date(d as Date).toISOString()).split('T')[0] } catch { return '' }
                           })()})
@@ -356,7 +356,7 @@ export function HomePage() {
                       )}
                     </div>
                   )}
-                  {/* 奖励额度 */}
+                  {/* Bonus quota */}
                   {activeAccount.usage?.bonuses?.map((bonus) => (
                     <div key={bonus.code} className="flex items-center gap-2 text-xs">
                       <div className="w-2 h-2 rounded-full bg-cyan-500" />
@@ -364,7 +364,7 @@ export function HomePage() {
                       <span className="font-medium">{bonus.current} / {bonus.limit}</span>
                       {bonus.expiresAt && (
                         <span className="text-muted-foreground/70 text-[10px]">
-                          (至 {(() => {
+                          (until {(() => {
                             const d = bonus.expiresAt as unknown
                             try { return (typeof d === 'string' ? d : new Date(d as Date).toISOString()).split('T')[0] } catch { return '' }
                           })()})
@@ -376,9 +376,9 @@ export function HomePage() {
               </div>
             )}
 
-            {/* 账户信息 */}
+            {/* Account info */}
             <div className="pt-3 border-t space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">账户信息</p>
+              <p className="text-xs font-medium text-muted-foreground">Account Info</p>
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-start gap-2">
                   <span className="text-muted-foreground shrink-0">User ID:</span>
@@ -390,11 +390,11 @@ export function HomePage() {
                 </div>
                 {activeAccount.usage?.nextResetDate && (
                   <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">重置日期:</span>
+                    <span className="text-muted-foreground">Reset Date:</span>
                     <span className="font-medium">
                       {(() => {
                         const d = activeAccount.usage.nextResetDate as unknown
-                        try { return (typeof d === 'string' ? d : new Date(d as Date).toISOString()).split('T')[0] } catch { return '未知' }
+                        try { return (typeof d === 'string' ? d : new Date(d as Date).toISOString()).split('T')[0] } catch { return 'Unknown' }
                       })()}
                     </span>
                   </div>
@@ -412,26 +412,26 @@ export function HomePage() {
             <div className="p-2 rounded-lg bg-primary/10">
               <Shield className="h-4 w-4 text-primary" />
             </div>
-            快速提示
+            Quick Tips
           </CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              点击左侧「账户管理」可以查看和管理所有账号
+              Click "Accounts" on the left to view and manage all accounts
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              在账号卡片上点击电源图标可以快速切换账号
+              Click the power icon on account cards to quickly switch accounts
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              Token 会在过期前 5 分钟自动刷新，无需手动操作
+              Tokens are automatically refreshed 5 minutes before expiry
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              使用「隐私模式」可以隐藏邮箱和账号信息
+              Use "Privacy Mode" to hide email and account information
             </li>
           </ul>
         </CardContent>
@@ -446,9 +446,9 @@ export function HomePage() {
                 <Fingerprint className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="font-medium text-sm">机器码管理</p>
+                <p className="font-medium text-sm">Machine ID Management</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  修改设备标识符，切号时自动更换，支持账户绑定
+                  Modify device identifier, auto-change when switching, supports account binding
                 </p>
               </div>
             </div>
@@ -462,9 +462,9 @@ export function HomePage() {
                 <FolderPlus className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="font-medium text-sm">分组管理</p>
+                <p className="font-medium text-sm">Group Management</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  多选账户后可批量设置分组，一键移动账号
+                  Select multiple accounts to batch set groups, move accounts with one click
                 </p>
               </div>
             </div>
@@ -478,9 +478,9 @@ export function HomePage() {
                 <Tag className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="font-medium text-sm">标签管理</p>
+                <p className="font-medium text-sm">Tag Management</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  多选账户后可批量添加/移除标签，支持多标签
+                  Select multiple accounts to batch add/remove tags, supports multiple tags
                 </p>
               </div>
             </div>

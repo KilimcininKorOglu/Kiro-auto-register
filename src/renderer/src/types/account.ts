@@ -1,5 +1,5 @@
 // ============================================
-// 多账号管理器类型定义
+// Multi-Account Manager Type Definitions
 // ============================================
 
 export type IdpType = 'Google' | 'Github' | 'BuilderId' | 'AWSIdC' | 'Internal'
@@ -9,22 +9,22 @@ export type SubscriptionType = 'Free' | 'Pro' | 'Pro_Plus' | 'Enterprise' | 'Tea
 export type AccountStatus = 'active' | 'expired' | 'error' | 'refreshing' | 'unknown'
 
 /**
- * 账号凭证信息
+ * Account credentials
  */
 export interface AccountCredentials {
   accessToken: string
   csrfToken: string
   refreshToken?: string
-  clientId?: string      // OIDC 客户端 ID（用于刷新 token）
-  clientSecret?: string  // OIDC 客户端密钥
-  region?: string        // AWS 区域，默认 us-east-1
-  expiresAt: number      // 时间戳
-  authMethod?: 'IdC' | 'social'  // 认证方式：IdC (BuilderId) 或 social (GitHub/Google)
-  provider?: 'BuilderId' | 'Github' | 'Google'  // 身份提供商
+  clientId?: string      // OIDC client ID (for token refresh)
+  clientSecret?: string  // OIDC client secret
+  region?: string        // AWS region, default us-east-1
+  expiresAt: number      // Timestamp
+  authMethod?: 'IdC' | 'social'  // Auth method: IdC (BuilderId) or social (GitHub/Google)
+  provider?: 'BuilderId' | 'Github' | 'Google'  // Identity provider
 }
 
 /**
- * 奖励额度信息
+ * Bonus usage info
  */
 export interface BonusUsage {
   code: string
@@ -35,40 +35,40 @@ export interface BonusUsage {
 }
 
 /**
- * 账号使用量信息
+ * Account usage info
  */
 export interface AccountUsage {
   current: number
   limit: number
   percentUsed: number
   lastUpdated: number
-  // 详细额度分解
-  baseLimit?: number      // 基础额度
-  baseCurrent?: number    // 基础已用
-  freeTrialLimit?: number // 试用额度
+  // Detailed quota breakdown
+  baseLimit?: number      // Base quota
+  baseCurrent?: number    // Base used
+  freeTrialLimit?: number // Trial quota
   freeTrialCurrent?: number
   freeTrialExpiry?: string
-  bonuses?: BonusUsage[]  // 奖励额度列表
-  nextResetDate?: string  // 重置日期
-  resourceDetail?: ResourceDetail // 资源详情
+  bonuses?: BonusUsage[]  // Bonus quota list
+  nextResetDate?: string  // Reset date
+  resourceDetail?: ResourceDetail // Resource details
 }
 
 /**
- * 账号订阅信息
+ * Account subscription info
  */
 export interface AccountSubscription {
   type: SubscriptionType
-  title?: string // 原始订阅标题，如 "KIRO PRO+"
-  rawType?: string // 原始订阅类型，如 "Q_DEVELOPER_STANDALONE_PRO_PLUS"
-  expiresAt?: number // 订阅到期时间戳
+  title?: string // Original subscription title, e.g. "KIRO PRO+"
+  rawType?: string // Original subscription type, e.g. "Q_DEVELOPER_STANDALONE_PRO_PLUS"
+  expiresAt?: number // Subscription expiry timestamp
   daysRemaining?: number
-  upgradeCapability?: string // 可升级能力
-  overageCapability?: string // 超额能力
-  managementTarget?: string // 订阅管理目标
+  upgradeCapability?: string // Upgrade capability
+  overageCapability?: string // Overage capability
+  managementTarget?: string // Subscription management target
 }
 
 /**
- * 资源使用详情
+ * Resource usage details
  */
 export interface ResourceDetail {
   resourceType?: string // CREDIT
@@ -82,7 +82,7 @@ export interface ResourceDetail {
 }
 
 /**
- * 账号标签
+ * Account tag
  */
 export interface AccountTag {
   id: string
@@ -91,43 +91,43 @@ export interface AccountTag {
 }
 
 /**
- * 账号实体
+ * Account entity
  */
 export interface Account {
-  // 基本信息
+  // Basic info
   id: string
   email: string
-  nickname?: string // 自定义别名
+  nickname?: string // Custom alias
   idp: IdpType
   userId?: string
   visitorId?: string
 
-  // 认证信息
+  // Auth info
   credentials: AccountCredentials
 
-  // 订阅信息
+  // Subscription info
   subscription: AccountSubscription
 
-  // 使用量
+  // Usage
   usage: AccountUsage
 
-  // 分组和标签
+  // Group and tags
   groupId?: string
   tags: string[] // tag ids
 
-  // 状态
+  // Status
   status: AccountStatus
   lastError?: string
-  isActive: boolean // 是否为当前激活账号
+  isActive: boolean // Is current active account
 
-  // 时间戳
+  // Timestamps
   createdAt: number
   lastUsedAt: number
-  lastCheckedAt?: number // 上次状态检查时间
+  lastCheckedAt?: number // Last status check time
 }
 
 /**
- * 账号分组
+ * Account group
  */
 export interface AccountGroup {
   id: string
@@ -139,23 +139,23 @@ export interface AccountGroup {
 }
 
 /**
- * 筛选条件
+ * Filter conditions
  */
 export interface AccountFilter {
-  search?: string // 搜索关键词（邮箱/别名）
+  search?: string // Search keyword (email/alias)
   subscriptionTypes?: SubscriptionType[]
   statuses?: AccountStatus[]
   idps?: IdpType[]
   groupIds?: string[]
   tagIds?: string[]
-  usageMin?: number // 使用量百分比
+  usageMin?: number // Usage percentage
   usageMax?: number
   daysRemainingMin?: number
   daysRemainingMax?: number
 }
 
 /**
- * 排序选项
+ * Sort options
  */
 export type SortField =
   | 'email'
@@ -175,7 +175,7 @@ export interface AccountSort {
 }
 
 /**
- * 导入/导出格式
+ * Import/Export format
  */
 export interface AccountExportData {
   version: string
@@ -186,7 +186,7 @@ export interface AccountExportData {
 }
 
 /**
- * 账号导入项（简化格式）
+ * Account import item (simplified format)
  */
 export interface AccountImportItem {
   email: string
@@ -203,7 +203,7 @@ export interface AccountImportItem {
 }
 
 /**
- * 批量操作结果
+ * Batch operation result
  */
 export interface BatchOperationResult {
   success: number
@@ -212,7 +212,7 @@ export interface BatchOperationResult {
 }
 
 /**
- * 账号统计
+ * Account statistics
  */
 export interface AccountStats {
   total: number
@@ -220,5 +220,5 @@ export interface AccountStats {
   bySubscription: Record<SubscriptionType, number>
   byIdp: Record<IdpType, number>
   activeCount: number
-  expiringSoonCount: number // 7天内到期
+  expiringSoonCount: number // Expiring within 7 days
 }

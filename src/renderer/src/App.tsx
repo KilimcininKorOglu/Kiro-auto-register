@@ -11,7 +11,7 @@ function App(): React.JSX.Element {
   
   const { loadFromStorage, startAutoTokenRefresh, stopAutoTokenRefresh, handleBackgroundRefreshResult, handleBackgroundCheckResult } = useAccountsStore()
   
-  // 应用启动时加载数据并启动自动刷新
+  // Load data and start auto-refresh on app startup
   useEffect(() => {
     loadFromStorage().then(() => {
       startAutoTokenRefresh()
@@ -22,7 +22,7 @@ function App(): React.JSX.Element {
     }
   }, [loadFromStorage, startAutoTokenRefresh, stopAutoTokenRefresh])
 
-  // 监听后台刷新结果
+  // Listen for background refresh results
   useEffect(() => {
     const unsubscribe = window.api.onBackgroundRefreshResult((data) => {
       handleBackgroundRefreshResult(data)
@@ -32,7 +32,7 @@ function App(): React.JSX.Element {
     }
   }, [handleBackgroundRefreshResult])
 
-  // 监听后台检查结果
+  // Listen for background check results
   useEffect(() => {
     const unsubscribe = window.api.onBackgroundCheckResult((data) => {
       handleBackgroundCheckResult(data)

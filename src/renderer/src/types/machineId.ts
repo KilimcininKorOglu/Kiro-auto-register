@@ -1,45 +1,45 @@
 /**
- * 机器码管理相关类型定义
+ * Machine ID management type definitions
  */
 
-// 操作系统类型
+// Operating system type
 export type OSType = 'windows' | 'macos' | 'linux' | 'unknown'
 
-// 机器码配置
+// Machine ID configuration
 export interface MachineIdConfig {
-  // 自动切换机器码（切号时自动更换）
+  // Auto-switch machine ID (auto-change when switching accounts)
   autoSwitchOnAccountChange: boolean
-  // 账户机器码绑定（每个账户关联唯一机器码）
+  // Bind machine ID to account (each account has unique machine ID)
   bindMachineIdToAccount: boolean
-  // 使用绑定的唯一机器码（否则随机生成）
+  // Use bound unique machine ID (otherwise generate random)
   useBindedMachineId: boolean
 }
 
-// 机器码状态
+// Machine ID state
 export interface MachineIdState {
-  // 当前系统机器码
+  // Current system machine ID
   currentMachineId: string
-  // 备份的原始机器码
+  // Backed up original machine ID
   originalMachineId: string | null
-  // 原始机器码备份时间
+  // Original machine ID backup time
   originalBackupTime: number | null
-  // 操作系统类型
+  // Operating system type
   osType: OSType
-  // 是否拥有管理员权限
+  // Has admin privileges
   hasAdminPrivilege: boolean
-  // 是否正在操作中
+  // Is operation in progress
   isOperating: boolean
-  // 最后一次操作错误
+  // Last operation error
   lastError: string | null
-  // 配置
+  // Configuration
   config: MachineIdConfig
-  // 账户绑定的机器码映射 (accountId -> machineId)
+  // Account-bound machine ID mapping (accountId -> machineId)
   accountMachineIds: Record<string, string>
-  // 机器码历史记录
+  // Machine ID history
   history: MachineIdHistoryEntry[]
 }
 
-// 机器码历史记录
+// Machine ID history entry
 export interface MachineIdHistoryEntry {
   id: string
   machineId: string
@@ -49,7 +49,7 @@ export interface MachineIdHistoryEntry {
   accountEmail?: string
 }
 
-// 机器码操作结果
+// Machine ID operation result
 export interface MachineIdResult {
   success: boolean
   machineId?: string
@@ -57,22 +57,22 @@ export interface MachineIdResult {
   requiresAdmin?: boolean
 }
 
-// 主进程 API 接口
+// Main process API interface
 export interface MachineIdAPI {
-  // 获取当前机器码
+  // Get current machine ID
   getCurrentMachineId: () => Promise<MachineIdResult>
-  // 设置新机器码
+  // Set new machine ID
   setMachineId: (newMachineId: string) => Promise<MachineIdResult>
-  // 生成随机机器码
+  // Generate random machine ID
   generateRandomMachineId: () => string
-  // 检查管理员权限
+  // Check admin privileges
   checkAdminPrivilege: () => Promise<boolean>
-  // 请求管理员权限重启
+  // Request admin restart
   requestAdminRestart: () => Promise<boolean>
-  // 获取操作系统类型
+  // Get operating system type
   getOSType: () => OSType
-  // 备份机器码到文件
+  // Backup machine ID to file
   backupMachineIdToFile: (machineId: string, path: string) => Promise<boolean>
-  // 从文件恢复机器码
+  // Restore machine ID from file
   restoreMachineIdFromFile: (path: string) => Promise<MachineIdResult>
 }

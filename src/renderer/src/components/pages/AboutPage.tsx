@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '../ui'
 import { Heart, Code, ExternalLink, MessageCircle, X, RefreshCw, Download, CheckCircle, AlertCircle, Info, Zap } from 'lucide-react'
 import kiroLogo from '@/assets/kiro-high-resolution-logo-transparent.png'
-import groupQR from '@/assets/交流群.png'
+import groupQR from '@/assets/group-qr.png'
 import { useAccountsStore } from '@/store/accounts'
 import { cn } from '@/lib/utils'
 
@@ -32,8 +32,8 @@ export function AboutPage() {
 
   useEffect(() => {
     window.api.getAppVersion().then(setVersion)
-    // 不自动检查更新，避免 GitHub API 速率限制
-    // 用户可以手动点击"检查更新"按钮
+    // Don't auto-check for updates to avoid GitHub API rate limits
+    // Users can manually click "Check for Updates" button
   }, [])
 
   const checkForUpdates = async (showModal = true) => {
@@ -76,8 +76,8 @@ export function AboutPage() {
             className={cn("h-20 w-auto mx-auto transition-all", darkMode && "invert brightness-0")} 
           />
           <div>
-            <h1 className="text-2xl font-bold text-primary">Kiro 账户管理器</h1>
-            <p className="text-muted-foreground">版本 {version}</p>
+            <h1 className="text-2xl font-bold text-primary">Kiro Account Manager</h1>
+            <p className="text-muted-foreground">Version {version}</p>
           </div>
         <div className="flex gap-2 justify-center flex-wrap">
           <Button
@@ -88,7 +88,7 @@ export function AboutPage() {
             disabled={isCheckingUpdate}
           >
             <RefreshCw className={cn("h-4 w-4", isCheckingUpdate && "animate-spin")} />
-            {isCheckingUpdate ? '检查中...' : '检查更新'}
+            {isCheckingUpdate ? 'Checking...' : 'Check for Updates'}
           </Button>
           <Button
             variant="outline"
@@ -97,24 +97,24 @@ export function AboutPage() {
             onClick={() => setShowGroupQR(true)}
           >
             <MessageCircle className="h-4 w-4" />
-            加入交流群
+            Join Community
           </Button>
         </div>
         
-        {/* 更新提示 */}
+        {/* Update notification */}
         {updateInfo?.hasUpdate && !showUpdateModal && (
           <div 
             className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm cursor-pointer hover:bg-primary/20"
             onClick={() => setShowUpdateModal(true)}
           >
             <Download className="h-4 w-4" />
-            发现新版本 v{updateInfo.latestVersion}
+            New version v{updateInfo.latestVersion} available
           </div>
         )}
         </div>
       </div>
 
-      {/* 更新弹窗 */}
+      {/* Update modal */}
       {showUpdateModal && updateInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowUpdateModal(false)} />
@@ -134,7 +134,7 @@ export function AboutPage() {
                       <Download className="h-6 w-6 text-green-500" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">发现新版本</h3>
+                      <h3 className="font-semibold text-lg">New Version Available</h3>
                       <p className="text-sm text-muted-foreground">
                         {updateInfo.currentVersion} → {updateInfo.latestVersion}
                       </p>
@@ -145,14 +145,14 @@ export function AboutPage() {
                     <p className="text-sm font-medium mb-2">{updateInfo.releaseName}</p>
                     {updateInfo.publishedAt && (
                       <p className="text-xs text-muted-foreground">
-                        发布时间: {new Date(updateInfo.publishedAt).toLocaleDateString('zh-CN')}
+                        Published: {new Date(updateInfo.publishedAt).toLocaleDateString('en-US')}
                       </p>
                     )}
                   </div>
                   
                   {updateInfo.releaseNotes && (
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">更新内容:</p>
+                      <p className="text-sm font-medium">Release Notes:</p>
                       <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg p-3 max-h-32 overflow-y-auto whitespace-pre-wrap">
                         {updateInfo.releaseNotes}
                       </div>
@@ -161,7 +161,7 @@ export function AboutPage() {
                   
                   {updateInfo.assets && updateInfo.assets.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">下载文件:</p>
+                      <p className="text-sm font-medium">Download Files:</p>
                       <div className="space-y-1 max-h-32 overflow-y-auto">
                         {updateInfo.assets.slice(0, 6).map((asset, i) => (
                           <div key={i} className="flex items-center justify-between text-xs bg-muted/30 rounded px-2 py-1">
@@ -171,7 +171,7 @@ export function AboutPage() {
                         ))}
                         {updateInfo.assets.length > 6 && (
                           <p className="text-xs text-muted-foreground text-center">
-                            还有 {updateInfo.assets.length - 6} 个文件...
+                            {updateInfo.assets.length - 6} more files...
                           </p>
                         )}
                       </div>
@@ -180,7 +180,7 @@ export function AboutPage() {
                   
                   <Button className="w-full gap-2" onClick={openReleasePage}>
                     <ExternalLink className="h-4 w-4" />
-                    前往下载页面
+                    Go to Download Page
                   </Button>
                 </>
               ) : updateInfo.error ? (
@@ -190,12 +190,12 @@ export function AboutPage() {
                       <AlertCircle className="h-6 w-6 text-red-500" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">检查更新失败</h3>
+                      <h3 className="font-semibold text-lg">Update Check Failed</h3>
                       <p className="text-sm text-muted-foreground">{updateInfo.error}</p>
                     </div>
                   </div>
                   <Button variant="outline" className="w-full" onClick={() => checkForUpdates(true)}>
-                    重试
+                    Retry
                   </Button>
                 </>
               ) : (
@@ -205,9 +205,9 @@ export function AboutPage() {
                       <CheckCircle className="h-6 w-6 text-green-500" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">已是最新版本</h3>
+                      <h3 className="font-semibold text-lg">Already Up to Date</h3>
                       <p className="text-sm text-muted-foreground">
-                        当前版本 v{updateInfo.currentVersion} 已经是最新的了
+                        Current version v{updateInfo.currentVersion} is the latest
                       </p>
                     </div>
                   </div>
@@ -218,7 +218,7 @@ export function AboutPage() {
         </div>
       )}
 
-      {/* 交流群弹窗 */}
+      {/* Community QR modal */}
       {showGroupQR && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowGroupQR(false)} />
@@ -230,11 +230,11 @@ export function AboutPage() {
               <X className="h-5 w-5" />
             </button>
             <div className="text-center space-y-3">
-              <h3 className="font-semibold text-lg">扫码加入交流群</h3>
+              <h3 className="font-semibold text-lg">Scan to Join Community</h3>
               <div className="bg-[#07C160]/5 rounded-xl p-3 border border-[#07C160]/20">
-                <img src={groupQR} alt="交流群" className="w-48 h-48 object-contain" />
+                <img src={groupQR} alt="Community QR" className="w-48 h-48 object-contain" />
               </div>
-              <p className="text-sm text-muted-foreground">微信扫码加入</p>
+              <p className="text-sm text-muted-foreground">Scan with WeChat to join</p>
             </div>
           </div>
         </div>
@@ -247,18 +247,18 @@ export function AboutPage() {
             <div className="p-2 rounded-lg bg-primary/10">
               <Info className="h-4 w-4 text-primary" />
             </div>
-            关于本应用
+            About This App
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-3">
           <p>
-            Kiro 账户管理器是一个功能强大的 Kiro IDE 多账号管理工具。
-            支持多账号快速切换、自动 Token 刷新、分组标签管理、机器码管理等功能，
-            帮助你高效管理和使用多个 Kiro 账号。
+            Kiro Account Manager is a powerful multi-account management tool for Kiro IDE.
+            It supports quick account switching, automatic token refresh, group and tag management, machine ID management, and more,
+            helping you efficiently manage and use multiple Kiro accounts.
           </p>
           <p>
-            本应用使用 Electron + React + TypeScript 开发，支持 Windows、macOS 和 Linux 平台。
-            所有数据均存储在本地，保护你的隐私安全。
+            This application is built with Electron + React + TypeScript and supports Windows, macOS, and Linux platforms.
+            All data is stored locally to protect your privacy.
           </p>
         </CardContent>
       </Card>
@@ -270,58 +270,58 @@ export function AboutPage() {
             <div className="p-2 rounded-lg bg-primary/10">
               <Zap className="h-4 w-4 text-primary" />
             </div>
-            主要功能
+            Main Features
           </CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>多账号管理</strong>：支持添加、编辑、删除多个 Kiro 账号
+              <strong>Multi-Account Management</strong>: Add, edit, and delete multiple Kiro accounts
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>一键切换</strong>：快速切换当前使用的账号
+              <strong>One-Click Switch</strong>: Quickly switch the currently active account
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>自动刷新</strong>：Token 过期前自动刷新，保持登录状态
+              <strong>Auto Refresh</strong>: Automatically refresh tokens before expiry to maintain login status
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>分组与标签</strong>：多选账户批量设置分组/标签，支持多标签
+              <strong>Groups & Tags</strong>: Batch set groups/tags for multiple accounts, supports multiple tags
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>隐私模式</strong>：隐藏邮箱和账号敏感信息
+              <strong>Privacy Mode</strong>: Hide email and sensitive account information
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>批量导入</strong>：支持 SSO Token 和 OIDC 凭证批量导入
+              <strong>Batch Import</strong>: Support SSO Token and OIDC credential batch import
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>机器码管理</strong>：修改设备标识符，防止账号关联封禁
+              <strong>Machine ID Management</strong>: Modify device identifier to prevent account association bans
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>自动换机器码</strong>：切换账号时自动更换机器码
+              <strong>Auto Machine ID Change</strong>: Automatically change machine ID when switching accounts
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>账户机器码绑定</strong>：为每个账户分配唯一机器码
+              <strong>Account Machine ID Binding</strong>: Assign unique machine ID to each account
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>自动换号</strong>：余额不足时自动切换可用账号
+              <strong>Auto Account Switch</strong>: Automatically switch to available account when balance is insufficient
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>代理支持</strong>：支持 HTTP/HTTPS/SOCKS5 代理
+              <strong>Proxy Support</strong>: Support HTTP/HTTPS/SOCKS5 proxy
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5">✓</span>
-              <strong>主题定制</strong>：21 种主题颜色，深色/浅色模式
+              <strong>Theme Customization</strong>: 21 theme colors, dark/light mode
             </li>
           </ul>
         </CardContent>
@@ -334,7 +334,7 @@ export function AboutPage() {
             <div className="p-2 rounded-lg bg-primary/10">
               <Code className="h-4 w-4 text-primary" />
             </div>
-            技术栈
+            Tech Stack
           </CardTitle>
         </CardHeader>
         <CardContent>

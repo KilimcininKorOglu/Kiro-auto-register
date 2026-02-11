@@ -21,7 +21,7 @@ interface AccountData {
   kiroServerPassword?: string
   theme?: string
   darkMode?: boolean
-  // 机器码管理
+  // Machine ID management
   machineIdConfig?: {
     autoSwitchOnAccountChange: boolean
     bindMachineIdToAccount: boolean
@@ -76,9 +76,9 @@ interface StatusResult {
     status: string
     email?: string
     userId?: string
-    idp?: string // 身份提供商：BuilderId, Google, Github 等
-    userStatus?: string // 用户状态：Active 等
-    featureFlags?: string[] // 特性开关
+    idp?: string // Identity provider: BuilderId, Google, Github, etc.
+    userStatus?: string // User status: Active, etc.
+    featureFlags?: string[] // Feature flags
     subscriptionTitle?: string
     usage?: { 
       current: number
@@ -104,7 +104,7 @@ interface StatusResult {
       overageCapability?: string
       managementTarget?: string
     }
-    // 如果 token 被刷新，返回新凭证
+    // If token was refreshed, return new credentials
     newCredentials?: {
       accessToken: string
       refreshToken?: string
@@ -118,7 +118,7 @@ interface KiroApi {
   openExternal: (url: string) => void
   getAppVersion: () => Promise<string>
   
-  // Kiro 进程管理
+  // Kiro process management
   checkKiroRunning: () => Promise<{ running: boolean }>
   detectKiroPath: () => Promise<{ success: boolean; path: string }>
   launchKiro: (kiroPath: string) => Promise<{ success: boolean; error?: string }>
@@ -126,13 +126,13 @@ interface KiroApi {
   
   onAuthCallback: (callback: (data: { code: string; state: string }) => void) => () => void
 
-  // 账号管理
+  // Account management
   loadAccounts: () => Promise<AccountData | null>
   saveAccounts: (data: AccountData) => Promise<void>
   refreshAccountToken: (account: unknown) => Promise<RefreshResult>
   checkAccountStatus: (account: unknown) => Promise<StatusResult>
   
-  // 后台批量刷新（主进程执行，不阻塞 UI）
+  // Background batch refresh (runs in main process, doesn't block UI)
   backgroundBatchRefresh: (accounts: Array<{
     id: string
     email: string
@@ -148,7 +148,7 @@ interface KiroApi {
   onBackgroundRefreshProgress: (callback: (data: { completed: number; total: number; success: number; failed: number }) => void) => () => void
   onBackgroundRefreshResult: (callback: (data: { id: string; success: boolean; data?: unknown; error?: string }) => void) => () => void
   
-  // 后台批量检查账号状态（不刷新 Token）
+  // Background batch check account status (without refreshing token)
   backgroundBatchCheck: (accounts: Array<{
     id: string
     email: string
@@ -166,7 +166,7 @@ interface KiroApi {
   onBackgroundCheckProgress: (callback: (data: { completed: number; total: number; success: number; failed: number }) => void) => () => void
   onBackgroundCheckResult: (callback: (data: { id: string; success: boolean; data?: unknown; error?: string }) => void) => () => void
   
-  // 切换账号 - 写入凭证到本地 SSO 缓存
+  // Switch account - Write credentials to local SSO cache
   switchAccount: (credentials: {
     accessToken: string
     refreshToken: string
@@ -177,18 +177,18 @@ interface KiroApi {
     provider?: 'BuilderId' | 'Github' | 'Google'
   }) => Promise<{ success: boolean; error?: string }>
 
-  // 文件操作
+  // File operations
   exportToFile: (data: string, filename: string) => Promise<boolean>
   exportToFolder: (files: Array<{ filename: string; content: string }>) => Promise<{ success: boolean; count: number; folder?: string; error?: string }>
   importFromFile: () => Promise<{ content: string; format: string } | { files: Array<{ content: string; format: string; path: string }>; isMultiple: true } | null>
 
-  // 验证凭证并获取账号信息
+  // Verify credentials and get account info
   verifyAccountCredentials: (credentials: {
     refreshToken: string
     clientId: string
     clientSecret: string
     region?: string
-    authMethod?: string  // 'IdC' 或 'social'
+    authMethod?: string  // 'IdC' or 'social'
     provider?: string    // 'BuilderId', 'Github', 'Google'
   }) => Promise<{
     success: boolean
@@ -233,7 +233,7 @@ interface KiroApi {
     error?: string
   }>
 
-  // 获取本地 SSO 缓存中当前使用的账号信息
+  // Get currently active account info from local SSO cache
   getLocalActiveAccount: () => Promise<{
     success: boolean
     data?: {
@@ -245,7 +245,7 @@ interface KiroApi {
     error?: string
   }>
 
-  // 从 Kiro 本地配置导入凭证
+  // Import credentials from Kiro local config
   loadKiroCredentials: () => Promise<{
     success: boolean
     data?: {
@@ -254,13 +254,13 @@ interface KiroApi {
       clientId: string
       clientSecret: string
       region: string
-      authMethod: string  // 'IdC' 或 'social'
+      authMethod: string  // 'IdC' or 'social'
       provider: string    // 'BuilderId', 'Github', 'Google'
     }
     error?: string
   }>
 
-  // 从 AWS SSO Token (x-amz-sso_authn) 导入账号
+  // Import account from AWS SSO Token (x-amz-sso_authn)
   importFromSsoToken: (bearerToken: string, region?: string) => Promise<{
     success: boolean
     data?: {
@@ -307,9 +307,9 @@ interface KiroApi {
     error?: { message: string }
   }>
 
-  // ============ 手动登录 API ============
+  // ============ Manual Login API ============
 
-  // 启动 Builder ID 手动登录
+  // Start Builder ID manual login
   startBuilderIdLogin: (region?: string) => Promise<{
     success: boolean
     userCode?: string
@@ -319,7 +319,7 @@ interface KiroApi {
     error?: string
   }>
 
-  // 轮询 Builder ID 授权状态
+  // Poll Builder ID authorization status
   pollBuilderIdAuth: (region?: string) => Promise<{
     success: boolean
     completed?: boolean
@@ -333,10 +333,10 @@ interface KiroApi {
     error?: string
   }>
 
-  // 取消 Builder ID 登录
+  // Cancel Builder ID login
   cancelBuilderIdLogin: () => Promise<{ success: boolean }>
 
-  // 启动 Social Auth 登录 (Google/GitHub)
+  // Start Social Auth login (Google/GitHub)
   startSocialLogin: (provider: 'Google' | 'Github') => Promise<{
     success: boolean
     loginUrl?: string
@@ -344,7 +344,7 @@ interface KiroApi {
     error?: string
   }>
 
-  // 交换 Social Auth token
+  // Exchange Social Auth token
   exchangeSocialToken: (code: string, state: string) => Promise<{
     success: boolean
     accessToken?: string
@@ -356,21 +356,21 @@ interface KiroApi {
     error?: string
   }>
 
-  // 取消 Social Auth 登录
+  // Cancel Social Auth login
   cancelSocialLogin: () => Promise<{ success: boolean }>
 
-  // 监听 Social Auth 回调
+  // Listen for Social Auth callback
   onSocialAuthCallback: (callback: (data: { code?: string; state?: string; error?: string }) => void) => () => void
 
-  // 代理设置
+  // Proxy settings
   setProxy: (enabled: boolean, url: string) => Promise<{ success: boolean; error?: string }>
 
-  // ============ 机器码管理 API ============
+  // ============ Machine ID Management API ============
 
-  // 获取操作系统类型
+  // Get operating system type
   machineIdGetOSType: () => Promise<'windows' | 'macos' | 'linux' | 'unknown'>
 
-  // 获取当前机器码
+  // Get current machine ID
   machineIdGetCurrent: () => Promise<{
     success: boolean
     machineId?: string
@@ -378,7 +378,7 @@ interface KiroApi {
     requiresAdmin?: boolean
   }>
 
-  // 设置新机器码
+  // Set new machine ID
   machineIdSet: (newMachineId: string) => Promise<{
     success: boolean
     machineId?: string
@@ -386,28 +386,28 @@ interface KiroApi {
     requiresAdmin?: boolean
   }>
 
-  // 生成随机机器码
+  // Generate random machine ID
   machineIdGenerateRandom: () => Promise<string>
 
-  // 检查管理员权限
+  // Check admin privileges
   machineIdCheckAdmin: () => Promise<boolean>
 
-  // 请求管理员权限重启
+  // Request admin restart
   machineIdRequestAdminRestart: () => Promise<boolean>
 
-  // 备份机器码到文件
+  // Backup machine ID to file
   machineIdBackupToFile: (machineId: string) => Promise<boolean>
 
-  // 从文件恢复机器码
+  // Restore machine ID from file
   machineIdRestoreFromFile: () => Promise<{
     success: boolean
     machineId?: string
     error?: string
   }>
 
-  // ============ 自动更新 API ============
+  // ============ Auto Update API ============
 
-  // 检查更新 (electron-updater)
+  // Check for updates (electron-updater)
   checkForUpdates: () => Promise<{
     hasUpdate: boolean
     version?: string
@@ -416,7 +416,7 @@ interface KiroApi {
     error?: string
   }>
 
-  // 手动检查更新 (GitHub API, 用于 AboutPage)
+  // Manual check for updates (GitHub API, for AboutPage)
   checkForUpdatesManual: () => Promise<{
     hasUpdate: boolean
     currentVersion?: string
@@ -433,13 +433,13 @@ interface KiroApi {
     error?: string
   }>
 
-  // 下载更新
+  // Download update
   downloadUpdate: () => Promise<{ success: boolean; error?: string }>
 
-  // 安装更新并重启
+  // Install update and restart
   installUpdate: () => Promise<void>
 
-  // 监听更新事件
+  // Listen for update events
   onUpdateChecking: (callback: () => void) => () => void
   onUpdateAvailable: (callback: (info: { version: string; releaseDate?: string; releaseNotes?: string }) => void) => () => void
   onUpdateNotAvailable: (callback: (info: { version: string }) => void) => () => void
@@ -447,9 +447,9 @@ interface KiroApi {
   onUpdateDownloaded: (callback: (info: { version: string; releaseDate?: string; releaseNotes?: string }) => void) => () => void
   onUpdateError: (callback: (error: string) => void) => () => void
 
-  // ============ Kiro 设置管理 API ============
+  // ============ Kiro Settings Management API ============
 
-  // 获取 Kiro 设置
+  // Get Kiro settings
   getKiroSettings: () => Promise<{
     settings?: Record<string, unknown>
     mcpConfig?: { mcpServers: Record<string, unknown> }
@@ -457,44 +457,44 @@ interface KiroApi {
     error?: string
   }>
 
-  // 保存 Kiro 设置
+  // Save Kiro settings
   saveKiroSettings: (settings: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>
 
-  // 打开 Kiro MCP 配置文件
+  // Open Kiro MCP config file
   openKiroMcpConfig: (type: 'user' | 'workspace') => Promise<{ success: boolean; error?: string }>
 
-  // 打开 Kiro Steering 目录
+  // Open Kiro Steering folder
   openKiroSteeringFolder: () => Promise<{ success: boolean; error?: string }>
 
-  // 打开 Kiro settings.json 文件
+  // Open Kiro settings.json file
   openKiroSettingsFile: () => Promise<{ success: boolean; error?: string }>
 
-  // 打开指定的 Steering 文件
+  // Open specified Steering file
   openKiroSteeringFile: (filename: string) => Promise<{ success: boolean; error?: string }>
 
-  // 创建默认的 rules.md 文件
+  // Create default rules.md file
   createKiroDefaultRules: () => Promise<{ success: boolean; error?: string }>
 
-  // 读取 Steering 文件内容
+  // Read Steering file content
   readKiroSteeringFile: (filename: string) => Promise<{ success: boolean; content?: string; error?: string }>
 
-  // 保存 Steering 文件内容
+  // Save Steering file content
   saveKiroSteeringFile: (filename: string, content: string) => Promise<{ success: boolean; error?: string }>
 
-  // 删除 Steering 文件
+  // Delete Steering file
   deleteKiroSteeringFile: (filename: string) => Promise<{ success: boolean; error?: string }>
 
-  // ============ MCP 服务器管理 ============
+  // ============ MCP Server Management ============
 
-  // 保存 MCP 服务器配置
+  // Save MCP server config
   saveMcpServer: (name: string, config: { command: string; args?: string[]; env?: Record<string, string> }, oldName?: string) => Promise<{ success: boolean; error?: string }>
 
-  // 删除 MCP 服务器
+  // Delete MCP server
   deleteMcpServer: (name: string) => Promise<{ success: boolean; error?: string }>
 
-  // ============ AWS 自动注册 API ============
+  // ============ AWS Auto-Register API ============
 
-  // 自动注册 AWS Builder ID
+  // Auto-register AWS Builder ID
   autoRegisterAWS: (params: {
     email: string
     emailPassword: string
@@ -509,7 +509,7 @@ interface KiroApi {
     error?: string
   }>
 
-  // 仅激活 Outlook 邮箱
+  // Activate Outlook email only
   activateOutlook: (params: {
     email: string
     emailPassword: string
@@ -518,10 +518,10 @@ interface KiroApi {
     error?: string
   }>
 
-  // 监听自动注册日志
+  // Listen for auto-register logs
   onAutoRegisterLog: (callback: (data: { email: string; message: string }) => void) => () => void
 
-  // 获取 Outlook 邮箱验证码
+  // Get Outlook email verification code
   getOutlookVerificationCode: (params: {
     email: string
     refreshToken: string
@@ -535,14 +535,14 @@ interface KiroApi {
     error?: string
   }>
 
-  // 打开文件选择对话框
+  // Open file selection dialog
   openFile: (options?: {
     filters?: Array<{ name: string; extensions: string[] }>
   }) => Promise<{ content: string; path: string } | null>
 
-  // ============ Kiro 服务器导入 API ============
+  // ============ Kiro Server Import API ============
 
-  // 导入账号到 Kiro 服务器
+  // Import accounts to Kiro server
   importToKiroServer: (params: {
     serverUrl: string
     password: string
@@ -564,7 +564,7 @@ interface KiroApi {
     error?: string
   }>
 
-  // 测试 Kiro 服务器连接
+  // Test Kiro server connection
   testKiroServerConnection: (serverUrl: string, password: string) => Promise<{
     success: boolean
     token?: string

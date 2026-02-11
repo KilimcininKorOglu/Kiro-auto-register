@@ -13,42 +13,42 @@ export interface RegisterAccount {
 }
 
 interface AutoRegisterState {
-  // 注册账号列表
+  // Registration account list
   accounts: RegisterAccount[]
-  // 是否正在运行
+  // Is running
   isRunning: boolean
-  // 日志
+  // Logs
   logs: string[]
-  // 并发数
+  // Concurrency
   concurrency: number
-  // 是否跳过 Outlook 激活
+  // Skip Outlook activation
   skipOutlookActivation: boolean
-  // 停止标志
+  // Stop flag
   shouldStop: boolean
 }
 
 interface AutoRegisterActions {
-  // 添加账号
+  // Add accounts
   addAccounts: (accounts: RegisterAccount[]) => void
-  // 清空账号
+  // Clear accounts
   clearAccounts: () => void
-  // 更新账号状态
+  // Update account status
   updateAccountStatus: (id: string, updates: Partial<RegisterAccount>) => void
-  // 添加日志
+  // Add log
   addLog: (message: string) => void
-  // 清空日志
+  // Clear logs
   clearLogs: () => void
-  // 设置运行状态
+  // Set running state
   setIsRunning: (running: boolean) => void
-  // 设置并发数
+  // Set concurrency
   setConcurrency: (concurrency: number) => void
-  // 设置跳过 Outlook 激活
+  // Set skip Outlook activation
   setSkipOutlookActivation: (skip: boolean) => void
-  // 请求停止
+  // Request stop
   requestStop: () => void
-  // 重置停止标志
+  // Reset stop flag
   resetStop: () => void
-  // 获取统计
+  // Get statistics
   getStats: () => {
     total: number
     pending: number
@@ -62,7 +62,7 @@ interface AutoRegisterActions {
 type AutoRegisterStore = AutoRegisterState & AutoRegisterActions
 
 export const useAutoRegisterStore = create<AutoRegisterStore>()((set, get) => ({
-  // 初始状态
+  // Initial state
   accounts: [],
   isRunning: false,
   logs: [],
@@ -70,20 +70,20 @@ export const useAutoRegisterStore = create<AutoRegisterStore>()((set, get) => ({
   skipOutlookActivation: false,
   shouldStop: false,
 
-  // 添加账号
+  // Add accounts
   addAccounts: (newAccounts) => {
     set((state) => ({
       accounts: [...state.accounts, ...newAccounts]
     }))
   },
 
-  // 清空账号
+  // Clear accounts
   clearAccounts: () => {
     if (get().isRunning) return
     set({ accounts: [], logs: [] })
   },
 
-  // 更新账号状态
+  // Update account status
   updateAccountStatus: (id, updates) => {
     set((state) => ({
       accounts: state.accounts.map(acc =>
@@ -92,7 +92,7 @@ export const useAutoRegisterStore = create<AutoRegisterStore>()((set, get) => ({
     }))
   },
 
-  // 添加日志
+  // Add log
   addLog: (message) => {
     const timestamp = new Date().toLocaleTimeString()
     set((state) => ({
@@ -100,37 +100,37 @@ export const useAutoRegisterStore = create<AutoRegisterStore>()((set, get) => ({
     }))
   },
 
-  // 清空日志
+  // Clear logs
   clearLogs: () => {
     set({ logs: [] })
   },
 
-  // 设置运行状态
+  // Set running state
   setIsRunning: (running) => {
     set({ isRunning: running })
   },
 
-  // 设置并发数
+  // Set concurrency
   setConcurrency: (concurrency) => {
     set({ concurrency: Math.min(10, Math.max(1, concurrency)) })
   },
 
-  // 设置跳过 Outlook 激活
+  // Set skip Outlook activation
   setSkipOutlookActivation: (skip) => {
     set({ skipOutlookActivation: skip })
   },
 
-  // 请求停止
+  // Request stop
   requestStop: () => {
     set({ shouldStop: true })
   },
 
-  // 重置停止标志
+  // Reset stop flag
   resetStop: () => {
     set({ shouldStop: false })
   },
 
-  // 获取统计
+  // Get statistics
   getStats: () => {
     const accounts = get().accounts
     return {

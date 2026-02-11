@@ -14,13 +14,13 @@ interface SidebarProps {
 }
 
 const menuItems: { id: PageType; label: string; icon: React.ElementType }[] = [
-  { id: 'home', label: '主页', icon: Home },
-  { id: 'accounts', label: '账户管理', icon: Users },
-  { id: 'autoRegister', label: '自动注册', icon: UserPlus },
-  { id: 'machineId', label: '机器码', icon: Fingerprint },
-  { id: 'kiroSettings', label: 'Kiro 设置', icon: Sparkles },
-  { id: 'settings', label: '设置', icon: Settings },
-  { id: 'about', label: '关于', icon: Info },
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'accounts', label: 'Accounts', icon: Users },
+  { id: 'autoRegister', label: 'Auto Register', icon: UserPlus },
+  { id: 'machineId', label: 'Machine ID', icon: Fingerprint },
+  { id: 'kiroSettings', label: 'Kiro Settings', icon: Sparkles },
+  { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'about', label: 'About', icon: Info },
 ]
 
 export function Sidebar({ currentPage, onPageChange, collapsed, onToggleCollapse }: SidebarProps) {
@@ -48,7 +48,7 @@ export function Sidebar({ currentPage, onPageChange, collapsed, onToggleCollapse
               alt="Kiro" 
               className={cn("h-7 w-auto shrink-0 transition-all", darkMode && "invert brightness-0")} 
             />
-            <span className="font-semibold text-foreground whitespace-nowrap">账户管理器</span>
+            <span className="font-semibold text-foreground whitespace-nowrap">Account Manager</span>
           </>
         )}
       </div>
@@ -87,14 +87,14 @@ export function Sidebar({ currentPage, onPageChange, collapsed, onToggleCollapse
         <button
           onClick={onToggleCollapse}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          title={collapsed ? "展开侧边栏" : "收起侧边栏"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (
             <ChevronRight className="h-4 w-4" />
           ) : (
             <>
               <ChevronLeft className="h-4 w-4 shrink-0" />
-              <span className="whitespace-nowrap">收起</span>
+              <span className="whitespace-nowrap">Collapse</span>
             </>
           )}
         </button>

@@ -24,21 +24,21 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
   if (!open) return null
 
   const formats: { id: ExportFormat; name: string; icon: typeof FileJson; desc: string }[] = [
-    { id: 'json', name: 'JSON', icon: FileJson, desc: '完整数据，可用于导入' },
-    { id: 'json-single', name: '单账号JSON', icon: Files, desc: '每个账号单独一个JSON文件' },
-    { id: 'txt', name: 'TXT', icon: FileText, desc: includeCredentials ? '可导入格式：邮箱,Token,昵称,登录方式' : '纯文本格式，每行一个账号' },
-    { id: 'csv', name: 'CSV', icon: Table, desc: includeCredentials ? '可导入格式，Excel 兼容' : 'Excel 兼容格式' },
-    { id: 'clipboard', name: '剪贴板', icon: Clipboard, desc: includeCredentials ? '可导入格式：邮箱,Token' : '复制到剪贴板' },
+    { id: 'json', name: 'JSON', icon: FileJson, desc: 'Full data, can be imported' },
+    { id: 'json-single', name: 'Single JSON', icon: Files, desc: 'One JSON file per account' },
+    { id: 'txt', name: 'TXT', icon: FileText, desc: includeCredentials ? 'Importable format: email,token,nickname,login method' : 'Plain text format, one account per line' },
+    { id: 'csv', name: 'CSV', icon: Table, desc: includeCredentials ? 'Importable format, Excel compatible' : 'Excel compatible format' },
+    { id: 'clipboard', name: 'Clipboard', icon: Clipboard, desc: includeCredentials ? 'Importable format: email,token' : 'Copy to clipboard' },
   ]
 
-  // 生成单个账号的完整 JSON 数据
+  // Generate single account full JSON data
   const generateSingleAccountJson = (acc: Account): string => {
     const singleExport = {
       version: '1.0',
       exportedAt: Date.now(),
       account: {
         ...acc,
-        isActive: false, // 导出时不保留激活状态
+        isActive: false, // Don't preserve active status on export
         credentials: includeCredentials ? acc.credentials : {
           ...acc.credentials,
           accessToken: '',
@@ -50,13 +50,13 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
     return JSON.stringify(singleExport, null, 2)
   }
 
-  // 生成导出内容
+  // Generate export content
   const generateContent = (format: ExportFormat): string => {
     switch (format) {
       case 'json':
-        // 使用 store 的 exportAccounts 函数导出完整数据
+        // Use store's exportAccounts function to export full data
         const exportData = exportAccounts(accounts.map(a => a.id))
-        // 如果不包含凭证，移除敏感信息
+        // If not including credentials, remove sensitive info
         if (!includeCredentials) {
           exportData.accounts = exportData.accounts.map(acc => ({
             ...acc,
@@ -72,7 +72,7 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
 
       case 'txt':
         if (includeCredentials) {
-          // 包含凭证时导出可导入格式：邮箱,RefreshToken,昵称,登录方式
+          // Include credentials: export importable format: email,RefreshToken,nickname,login method
           return accounts.map(acc => 
             [
               acc.email,
@@ -82,23 +82,23 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
             ].join(',')
           ).join('\n')
         }
-        // 不包含凭证时导出摘要信息
+        // Without credentials: export summary info
         return accounts.map(acc => {
           const lines = [
-            `邮箱: ${acc.email}`,
-            acc.nickname ? `昵称: ${acc.nickname}` : null,
-            acc.idp ? `登录方式: ${acc.idp}` : null,
-            acc.subscription?.title ? `订阅: ${acc.subscription.title}` : null,
-            acc.usage ? `用量: ${acc.usage.current ?? 0}/${acc.usage.limit ?? 0}` : null,
+            `Email: ${acc.email}`,
+            acc.nickname ? `Nickname: ${acc.nickname}` : null,
+            acc.idp ? `Login Method: ${acc.idp}` : null,
+            acc.subscription?.title ? `Subscription: ${acc.subscription.title}` : null,
+            acc.usage ? `Usage: ${acc.usage.current ?? 0}/${acc.usage.limit ?? 0}` : null,
           ].filter(Boolean)
           return lines.join('\n')
         }).join('\n\n---\n\n')
 
       case 'csv':
-        // CSV 格式：包含凭证时可用于导入
+        // CSV format: can be imported when including credentials
         const headers = includeCredentials 
-          ? ['邮箱', '昵称', '登录方式', 'RefreshToken', 'ClientId', 'ClientSecret', 'Region']
-          : ['邮箱', '昵称', '登录方式', '订阅类型', '订阅标题', '已用量', '总额度']
+          ? ['Email', 'Nickname', 'Login Method', 'RefreshToken', 'ClientId', 'ClientSecret', 'Region']
+          : ['Email', 'Nickname', 'Login Method', 'Subscription Type', 'Subscription Title', 'Used', 'Total']
         const rows = accounts.map(acc => includeCredentials 
           ? [
               acc.email,
@@ -119,21 +119,21 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
               String(acc.usage?.limit ?? '')
             ]
         )
-        // 添加 BOM 以支持 Excel 中文
+        // Add BOM for Excel compatibility
         return '\ufeff' + [headers, ...rows].map(row => 
           row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
         ).join('\n')
 
       case 'clipboard':
         if (includeCredentials) {
-          // 包含凭证时导出可导入格式：邮箱,RefreshToken
+          // Include credentials: export importable format: email,RefreshToken
           return accounts.map(acc => 
             `${acc.email},${acc.credentials?.refreshToken || ''}`
           ).join('\n')
         }
-        // 不包含凭证时导出摘要信息
+        // Without credentials: export summary info
         return accounts.map(acc => 
-          `${acc.email}${acc.nickname ? ` (${acc.nickname})` : ''} - ${acc.subscription?.title || '未知订阅'}`
+          `${acc.email}${acc.nickname ? ` (${acc.nickname})` : ''} - ${acc.subscription?.title || 'Unknown subscription'}`
         ).join('\n')
 
       default:
@@ -141,11 +141,11 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
     }
   }
 
-  // 导出处理
+  // Export handler
   const handleExport = async () => {
     const count = accounts.length
 
-    // 单账号 JSON 导出：选择文件夹，批量导出所有文件
+    // Single account JSON export: select folder, batch export all files
     if (selectedFormat === 'json-single') {
       const files = accounts.map(acc => {
         const content = generateSingleAccountJson(acc)
@@ -156,7 +156,7 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
       
       const result = await window.api.exportToFolder(files)
       if (result.success) {
-        alert(`已导出 ${result.count}/${count} 个账号到文件夹`)
+        alert(`Exported ${result.count}/${count} accounts to folder`)
         onClose()
       }
       return
@@ -183,28 +183,28 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
     
     const success = await window.api.exportToFile(content, filename)
     if (success) {
-      alert(`已导出 ${count} 个账号`)
+      alert(`Exported ${count} accounts`)
       onClose()
     }
   }
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* 背景遮罩 */}
+      {/* Background overlay */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* 对话框 */}
+      {/* Dialog */}
       <div className="relative bg-background rounded-xl shadow-2xl w-[450px] animate-in fade-in zoom-in-95 duration-200">
-        {/* 标题栏 */}
+        {/* Title bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div className="flex items-center gap-2">
             <Download className="h-5 w-5" />
-            <h2 className="text-lg font-semibold">导出账号</h2>
+            <h2 className="text-lg font-semibold">Export Accounts</h2>
             <Badge variant="secondary">
-              {selectedCount > 0 ? `${selectedCount} 个选中` : `全部 ${accounts.length} 个`}
+              {selectedCount > 0 ? `${selectedCount} selected` : `All ${accounts.length}`}
             </Badge>
           </div>
           <Button 
@@ -217,7 +217,7 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
           </Button>
         </div>
         
-        {/* 格式选择 */}
+        {/* Format selection */}
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             {formats.map(format => {
@@ -246,7 +246,7 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
             })}
           </div>
 
-          {/* 选项 */}
+          {/* Options */}
           {(selectedFormat === 'json' || selectedFormat === 'json-single') && (
             <label className="flex items-center gap-2 p-3 bg-muted rounded-lg cursor-pointer">
               <input
@@ -256,33 +256,33 @@ export function ExportDialog({ open, onClose, accounts, selectedCount }: ExportD
                 className="w-4 h-4 rounded"
               />
               <div>
-                <p className="text-sm font-medium">包含凭证信息</p>
-                <p className="text-xs text-muted-foreground">包含 Token 等敏感数据，可用于完整导入</p>
+                <p className="text-sm font-medium">Include Credentials</p>
+                <p className="text-xs text-muted-foreground">Include tokens and sensitive data for full import</p>
               </div>
             </label>
           )}
         </div>
 
-        {/* 底部按钮 */}
+        {/* Footer buttons */}
         <div className="flex justify-end gap-3 px-6 py-4 border-t bg-muted/30">
           <Button variant="outline" onClick={onClose}>
-            取消
+            Cancel
           </Button>
           <Button onClick={handleExport} disabled={copied}>
             {copied ? (
               <>
                 <Check className="h-4 w-4 mr-2" />
-                已复制
+                Copied
               </>
             ) : selectedFormat === 'clipboard' ? (
               <>
                 <Clipboard className="h-4 w-4 mr-2" />
-                复制到剪贴板
+                Copy to Clipboard
               </>
             ) : (
               <>
                 <Download className="h-4 w-4 mr-2" />
-                导出
+                Export
               </>
             )}
           </Button>

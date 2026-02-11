@@ -1,85 +1,85 @@
-# Kiro 账户管理器 v1.2.5 更新日志
+# Kiro Account Manager v1.2.5 Changelog
 
-**发布日期**: 2025-12-09
-
----
-
-## 🎨 主题系统升级
-
-### 主题颜色扩展
-- 主题颜色从 **13 个增加到 21 个**，提供更丰富的个性化选择
-- 按色系分组显示，便于用户快速定位喜欢的颜色：
-  - **蓝色系**: 天空蓝、靛蓝、清新青、晴空蓝、水鸭蓝
-  - **紫红系**: 优雅紫、紫罗兰、洋红、粉红、玫瑰红
-  - **暖色系**: 热情红、活力橙、琥珀金、明黄
-  - **绿色系**: 翠绿、草绿、青柠
-  - **中性色**: 石板灰、锌灰、暖灰、中性灰
-
-### 主题选择器优化
-- 新增 **收缩/展开** 功能，收缩时显示当前选中颜色
-- 点击即可展开完整的主题选择面板
-- 减少页面占用空间，界面更整洁
+**Release Date**: 2025-12-09
 
 ---
 
-## 📊 主页增强
+## Theme System Upgrade
 
-### 额度统计卡片
-- 新增 **额度统计** 模块，实时汇总所有有效账号的用量数据
-- 显示内容：
-  - 总额度
-  - 已使用
-  - 剩余额度
-  - 使用率百分比
-- 可视化进度条，根据使用率变色：
-  - 🟢 绿色: < 50%
-  - 🟡 黄色: 50% - 80%
-  - 🔴 红色: > 80%
+### Theme Color Expansion
+- Theme colors increased from **13 to 21**, providing more personalization options
+- Colors are grouped by color family for easier selection:
+  - **Blues**: Sky Blue, Indigo, Fresh Cyan, Clear Sky Blue, Teal
+  - **Purple/Pink**: Elegant Purple, Violet, Magenta, Pink, Rose Red
+  - **Warm Colors**: Passionate Red, Vibrant Orange, Amber Gold, Bright Yellow
+  - **Greens**: Emerald, Grass Green, Lime
+  - **Neutrals**: Slate Gray, Zinc Gray, Warm Gray, Neutral Gray
 
----
-
-## 💾 导出功能升级
-
-### 多格式导出支持
-- 新增导出格式选择弹窗，支持 4 种导出格式：
-  - **JSON**: 完整数据，可用于导入恢复
-  - **TXT**: 纯文本格式，便于阅读
-  - **CSV**: Excel 兼容格式，支持中文
-  - **剪贴板**: 直接复制到剪贴板
-
-### 导出选项
-- JSON 格式可选择是否包含凭证信息（Token 等敏感数据）
-- 支持多选账号导出，选中账号时只导出选中的
-- 设置页面和账户管理页面共用相同的导出组件
+### Theme Selector Optimization
+- Added **collapse/expand** functionality, showing current selected color when collapsed
+- Click to expand the full theme selection panel
+- Reduced page space usage for a cleaner interface
 
 ---
 
-## 🔧 机器码管理优化
+## Homepage Enhancements
 
-### 当前机器码卡片
-- 新增 **最后修改时间** 显示，与原始机器码备份布局保持一致
-
-### 账户机器码管理弹窗
-- 新增 **搜索功能**，支持按邮箱、昵称、机器码搜索
-- 搜索无结果时显示友好提示
-
----
-
-## 🐛 问题修复
-
-- 修复部分主题颜色切换无效的问题
-- 补全所有新增主题的 CSS 变量定义
-- 修复 `applyTheme` 函数未包含新主题类名的问题
+### Quota Statistics Card
+- Added **Quota Statistics** module that aggregates usage data from all valid accounts in real-time
+- Displays:
+  - Total quota
+  - Used amount
+  - Remaining quota
+  - Usage percentage
+- Visual progress bar with color changes based on usage rate:
+  - Green: < 50%
+  - Yellow: 50% - 80%
+  - Red: > 80%
 
 ---
 
-## 📝 技术改进
+## Export Feature Upgrade
 
-- 主题配置重构为分组结构，便于维护和扩展
-- 导出功能组件化，提高代码复用性
-- 优化额度统计使用 `useMemo` 提升性能
+### Multi-Format Export Support
+- Added export format selection dialog with 4 export formats:
+  - **JSON**: Complete data, can be used for import/restore
+  - **TXT**: Plain text format, easy to read
+  - **CSV**: Excel-compatible format with Chinese support
+  - **Clipboard**: Copy directly to clipboard
+
+### Export Options
+- JSON format allows choosing whether to include credential information (tokens and other sensitive data)
+- Supports multi-select account export; exports only selected accounts when selection is active
+- Settings page and account management page share the same export component
 
 ---
 
-**完整版本**: 1.2.5  
-**兼容性**: Windows / macOS / Linux
+## Machine ID Management Optimization
+
+### Current Machine ID Card
+- Added **Last Modified Time** display, consistent with original machine ID backup layout
+
+### Account Machine ID Management Dialog
+- Added **Search Functionality** supporting search by email, nickname, or machine ID
+- Displays friendly message when search returns no results
+
+---
+
+## Bug Fixes
+
+- Fixed issue where some theme color switches were not working
+- Completed CSS variable definitions for all new themes
+- Fixed `applyTheme` function not including new theme class names
+
+---
+
+## Technical Improvements
+
+- Refactored theme configuration to grouped structure for easier maintenance and extension
+- Componentized export functionality to improve code reusability
+- Optimized quota statistics using `useMemo` for better performance
+
+---
+
+**Full Version**: 1.2.5  
+**Compatibility**: Windows / macOS / Linux

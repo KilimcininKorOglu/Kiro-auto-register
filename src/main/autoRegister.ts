@@ -1,39 +1,39 @@
 /**
- * AWS Builder ID 自动注册模块
- * 完全集成在 Electron 中，不依赖外部 Python 脚本
+ * AWS Builder ID Auto Registration Module
+ * Fully integrated in Electron, no external Python scripts required
  * 
- * 邮箱参数格式: 邮箱|密码|refresh_token|client_id
- * - refresh_token: OAuth2 刷新令牌 (如 M.C509_xxx...)
- * - client_id: Graph API 客户端ID (如 9e5f94bc-xxx...)
+ * Email parameter format: email|password|refresh_token|client_id
+ * - refresh_token: OAuth2 refresh token (e.g. M.C509_xxx...)
+ * - client_id: Graph API client ID (e.g. 9e5f94bc-xxx...)
  */
 
 import { chromium, Browser, Page } from 'playwright'
 
-// 日志回调类型
+// Log callback type
 type LogCallback = (message: string) => void
 
-// 验证码正则表达式 - 与 Python 版本保持一致
+// Verification code regex - consistent with Python version
 const CODE_PATTERNS = [
-  // AWS/Amazon 验证码格式
-  /(?:verification\s*code|验证码|Your code is|code is)[：:\s]*(\d{6})/gi,
-  /(?:is|为)[：:\s]*(\d{6})\b/gi,
-  // 验证码通常单独一行或在特定上下文中
-  /^\s*(\d{6})\s*$/gm,  // 单独一行的6位数字
-  />\s*(\d{6})\s*</g,   // HTML标签之间的6位数字
+  // AWS/Amazon verification code format
+  /(?:verification\s*code|Your code is|code is)[：:\s]*(\d{6})/gi,
+  /(?:is)[：:\s]*(\d{6})\b/gi,
+  // Verification code usually on its own line or in specific context
+  /^\s*(\d{6})\s*$/gm,  // 6-digit number on its own line
+  />\s*(\d{6})\s*</g,   // 6-digit number between HTML tags
 ]
 
-// AWS 验证码发件人
+// AWS verification code senders
 const AWS_SENDERS = [
-  'no-reply@signin.aws',        // AWS 新发件人
+  'no-reply@signin.aws',        // AWS new sender
   'no-reply@login.awsapps.com',
   'noreply@amazon.com',
   'account-update@amazon.com',
   'no-reply@aws.amazon.com',
   'noreply@aws.amazon.com',
-  'aws'  // 模糊匹配
+  'aws'  // Fuzzy match
 ]
 
-// 随机姓名生成
+// Random name generation
 const FIRST_NAMES = ['James', 'Robert', 'John', 'Michael', 'David', 'William', 'Richard', 'Maria', 'Elizabeth', 'Jennifer', 'Linda', 'Barbara', 'Susan', 'Jessica']
 const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Wilson', 'Anderson', 'Thomas', 'Taylor']
 
@@ -43,13 +43,13 @@ function generateRandomName(): string {
   return `${first} ${last}`
 }
 
-// HTML 转文本 - 改进版本
+// HTML to text - improved version
 function htmlToText(html: string): string {
   if (!html) return ''
   
   let text = html
   
-  // 解码 HTML 实体
+  // Decode HTML entities
   text = text
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')
@@ -60,49 +60,49 @@ function htmlToText(html: string): string {
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n)))
     .replace(/&#x([0-9a-fA-F]+);/g, (_, n) => String.fromCharCode(parseInt(n, 16)))
   
-  // 移除 style 和 script 标签及其内容
+  // Remove style and script tags and their content
   text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
   text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
   
-  // 将 br 和 p 标签转换为换行
+  // Convert br and p tags to newlines
   text = text.replace(/<br\s*\/?>/gi, '\n')
   text = text.replace(/<\/p>/gi, '\n')
   text = text.replace(/<\/div>/gi, '\n')
   
-  // 移除所有 HTML 标签
+  // Remove all HTML tags
   text = text.replace(/<[^>]+>/g, ' ')
   
-  // 清理多余空白
+  // Clean extra whitespace
   text = text.replace(/\s+/g, ' ')
   
   return text.trim()
 }
 
-// 从文本提取验证码 - 改进版本，与 Python 保持一致
+// Extract verification code from text - improved version, consistent with Python
 function extractCode(text: string): string | null {
   if (!text) return null
   
   for (const pattern of CODE_PATTERNS) {
-    // 重置正则表达式的 lastIndex
+    // Reset regex lastIndex
     pattern.lastIndex = 0
     
     let match
     while ((match = pattern.exec(text)) !== null) {
       const code = match[1]
       if (code && /^\d{6}$/.test(code)) {
-        // 获取上下文进行排除检查
+        // Get context for exclusion check
         const start = Math.max(0, match.index - 20)
         const end = Math.min(text.length, match.index + match[0].length + 20)
         const context = text.slice(start, end)
         
-        // 排除颜色代码 (#XXXXXX)
+        // Exclude color codes (#XXXXXX)
         if (context.includes('#' + code)) continue
         
-        // 排除 CSS 颜色相关
+        // Exclude CSS color related
         if (/color[:\s]*[^;]*\d{6}/i.test(context)) continue
         if (/rgb|rgba|hsl/i.test(context)) continue
         
-        // 排除超过6位的数字（电话号码、邮编等）
+        // Exclude numbers longer than 6 digits (phone numbers, zip codes, etc.)
         if (/\d{7,}/.test(context)) continue
         
         return code
@@ -114,8 +114,8 @@ function extractCode(text: string): string | null {
 
 
 /**
- * 从 Outlook 邮箱获取验证码
- * 使用 Microsoft Graph API，与 Python 版本保持一致
+ * Get verification code from Outlook email
+ * Uses Microsoft Graph API, consistent with Python version
  */
 export async function getOutlookVerificationCode(
   refreshToken: string,
@@ -123,18 +123,18 @@ export async function getOutlookVerificationCode(
   log: LogCallback,
   timeout: number = 120
 ): Promise<string | null> {
-  log('========== 开始获取邮箱验证码 ==========')
+  log('========== Starting email verification code fetch ==========')
   log(`client_id: ${clientId}`)
   log(`refresh_token: ${refreshToken.substring(0, 30)}...`)
   
   const startTime = Date.now()
-  const checkInterval = 5000 // 5秒检查一次
+  const checkInterval = 5000 // Check every 5 seconds
   const checkedIds = new Set<string>()
   
   while (Date.now() - startTime < timeout * 1000) {
     try {
-      // 刷新 access_token
-      log('刷新 access_token...')
+      // Refresh access_token
+      log('Refreshing access_token...')
       let accessToken: string | null = null
       
       const tokenAttempts = [
@@ -161,7 +161,7 @@ export async function getOutlookVerificationCode(
           if (tokenResponse.ok) {
             const tokenResult = await tokenResponse.json() as { access_token: string }
             accessToken = tokenResult.access_token
-            log('✓ 成功获取 access_token')
+            log('Successfully got access_token')
             break
           }
         } catch {
@@ -170,12 +170,12 @@ export async function getOutlookVerificationCode(
       }
       
       if (!accessToken) {
-        log('✗ token 刷新失败')
+        log('Token refresh failed')
         return null
       }
       
-      // 获取邮件
-      log('获取邮件列表...')
+      // Get emails
+      log('Fetching email list...')
       const graphParams = new URLSearchParams({
         '$top': '50',
         '$orderby': 'receivedDateTime desc',
@@ -190,7 +190,7 @@ export async function getOutlookVerificationCode(
       })
       
       if (!mailResponse.ok) {
-        log(`获取邮件失败: ${mailResponse.status}`)
+        log(`Failed to fetch emails: ${mailResponse.status}`)
         await new Promise(r => setTimeout(r, checkInterval))
         continue
       }
@@ -206,9 +206,9 @@ export async function getOutlookVerificationCode(
         }>
       }
       
-      log(`获取到 ${mailData.value?.length || 0} 封邮件`)
+      log(`Got ${mailData.value?.length || 0} emails`)
       
-      // 搜索最新的 AWS 邮件
+      // Search for latest AWS email
       for (const mail of mailData.value || []) {
         const fromEmail = mail.from?.emailAddress?.address?.toLowerCase() || ''
         const isAwsSender = AWS_SENDERS.some(s => fromEmail.includes(s.toLowerCase()))
@@ -216,11 +216,11 @@ export async function getOutlookVerificationCode(
         if (isAwsSender && !checkedIds.has(mail.id)) {
           checkedIds.add(mail.id)
           
-          log(`\n=== 检查 AWS 邮件 ===`)
-          log(`  发件人: ${fromEmail}`)
-          log(`  主题: ${mail.subject?.substring(0, 50)}`)
+          log(`\n=== Checking AWS email ===`)
+          log(`  From: ${fromEmail}`)
+          log(`  Subject: ${mail.subject?.substring(0, 50)}`)
           
-          // 提取验证码
+          // Extract verification code
           let code: string | null = null
           const bodyText = htmlToText(mail.body?.content || '')
           if (bodyText) {
@@ -234,28 +234,28 @@ export async function getOutlookVerificationCode(
           }
           
           if (code) {
-            log(`\n========== 找到验证码: ${code} ==========`)
+            log(`\n========== Found verification code: ${code} ==========`)
             return code
           }
         }
       }
       
-      log(`未找到验证码，${checkInterval / 1000}秒后重试...`)
+      log(`Verification code not found, retrying in ${checkInterval / 1000} seconds...`)
       await new Promise(r => setTimeout(r, checkInterval))
       
     } catch (error) {
-      log(`获取验证码出错: ${error}`)
+      log(`Error getting verification code: ${error}`)
       await new Promise(r => setTimeout(r, checkInterval))
     }
   }
   
-  log('获取验证码超时')
+  log('Verification code fetch timeout')
   return null
 }
 
 
 /**
- * 等待输入框出现并输入内容
+ * Wait for input field to appear and fill content
  */
 async function waitAndFill(
   page: Page,
@@ -265,23 +265,23 @@ async function waitAndFill(
   description: string,
   timeout: number = 30000
 ): Promise<boolean> {
-  log(`等待${description}出现...`)
+  log(`Waiting for ${description} to appear...`)
   try {
     const element = page.locator(selector).first()
     await element.waitFor({ state: 'visible', timeout })
     await page.waitForTimeout(500)
     await element.clear()
     await element.fill(value)
-    log(`✓ 已输入${description}: ${value}`)
+    log(`Filled ${description}: ${value}`)
     return true
   } catch (error) {
-    log(`✗ ${description}操作失败: ${error}`)
+    log(`${description} operation failed: ${error}`)
     return false
   }
 }
 
 /**
- * 尝试多个选择器点击
+ * Try clicking multiple selectors
  */
 async function tryClickSelectors(
   page: Page,
@@ -296,19 +296,19 @@ async function tryClickSelectors(
       await element.waitFor({ state: 'visible', timeout: timeout / selectors.length })
       await page.waitForTimeout(300)
       await element.click()
-      log(`✓ 已点击${description}`)
+      log(`Clicked ${description}`)
       return true
     } catch {
       continue
     }
   }
-  log(`✗ 未找到${description}`)
+  log(`${description} not found`)
   return false
 }
 
 /**
- * 检测 AWS 错误弹窗并重试点击按钮
- * 错误弹窗选择器: div.awsui_content_mx3cw_97dyn_391 包含 "抱歉，处理您的请求时出错"
+ * Detect AWS error popup and retry clicking button
+ * Error popup selector: div.awsui_content_mx3cw_97dyn_391 contains "Sorry, there was an error processing your request"
  */
 async function checkAndRetryOnError(
   page: Page,
@@ -318,7 +318,7 @@ async function checkAndRetryOnError(
   maxRetries: number = 3,
   retryDelay: number = 2000
 ): Promise<boolean> {
-  // 错误弹窗的多种可能选择器
+  // Multiple possible selectors for error popup
   const errorSelectors = [
     'div.awsui_content_mx3cw_97dyn_391',
     '[class*="awsui_content_"]',
@@ -327,18 +327,16 @@ async function checkAndRetryOnError(
   ]
   
   const errorTexts = [
-    '抱歉，处理您的请求时出错',
     'Sorry, there was an error processing your request',
     'error processing your request',
-    'Please try again',
-    '请重试'
+    'Please try again'
   ]
   
   for (let retry = 0; retry < maxRetries; retry++) {
-    // 等待一下让页面响应
+    // Wait for page to respond
     await page.waitForTimeout(1500)
     
-    // 检查是否有错误弹窗
+    // Check for error popup
     let hasError = false
     for (const selector of errorSelectors) {
       try {
@@ -347,7 +345,7 @@ async function checkAndRetryOnError(
           const text = await el.textContent()
           if (text && errorTexts.some(errText => text.includes(errText))) {
             hasError = true
-            log(`⚠ 检测到错误弹窗: "${text.substring(0, 50)}..."`)
+            log(`Warning: Detected error popup: "${text.substring(0, 50)}..."`)
             break
           }
         }
@@ -358,32 +356,32 @@ async function checkAndRetryOnError(
     }
     
     if (!hasError) {
-      // 没有错误，操作成功
+      // No error, operation successful
       return true
     }
     
     if (retry < maxRetries - 1) {
-      log(`重试点击${description} (${retry + 2}/${maxRetries})...`)
+      log(`Retrying ${description} (${retry + 2}/${maxRetries})...`)
       await page.waitForTimeout(retryDelay)
       
-      // 重新点击按钮
+      // Re-click button
       try {
         const button = page.locator(buttonSelector).first()
         await button.waitFor({ state: 'visible', timeout: 5000 })
         await button.click()
-        log(`✓ 已重新点击${description}`)
+        log(`Re-clicked ${description}`)
       } catch (e) {
-        log(`✗ 重新点击${description}失败: ${e}`)
+        log(`Failed to re-click ${description}: ${e}`)
       }
     }
   }
   
-  log(`✗ ${description}多次重试后仍然失败`)
+  log(`${description} still failed after multiple retries`)
   return false
 }
 
 /**
- * 等待按钮出现并点击，带错误检测和自动重试
+ * Wait for button to appear and click, with error detection and auto retry
  */
 async function waitAndClickWithRetry(
   page: Page,
@@ -393,26 +391,26 @@ async function waitAndClickWithRetry(
   timeout: number = 30000,
   maxRetries: number = 3
 ): Promise<boolean> {
-  log(`等待${description}出现...`)
+  log(`Waiting for ${description} to appear...`)
   try {
     const element = page.locator(selector).first()
     await element.waitFor({ state: 'visible', timeout })
     await page.waitForTimeout(500)
     await element.click()
-    log(`✓ 已点击${description}`)
+    log(`Clicked ${description}`)
     
-    // 检查是否有错误弹窗，如果有则重试
+    // Check for error popup, retry if found
     const success = await checkAndRetryOnError(page, selector, log, description, maxRetries)
     return success
   } catch (error) {
-    log(`✗ 点击${description}失败: ${error}`)
+    log(`Failed to click ${description}: ${error}`)
     return false
   }
 }
 
 /**
- * Outlook 邮箱激活
- * 在 AWS 注册之前激活 Outlook 邮箱，确保能正常接收验证码
+ * Outlook Email Activation
+ * Activate Outlook email before AWS registration to ensure verification codes can be received
  */
 export async function activateOutlook(
   email: string,
@@ -422,12 +420,12 @@ export async function activateOutlook(
   const activationUrl = 'https://go.microsoft.com/fwlink/p/?linkid=2125442'
   let browser: Browser | null = null
   
-  log('========== 开始激活 Outlook 邮箱 ==========')
-  log(`邮箱: ${email}`)
+  log('========== Starting Outlook Email Activation ==========')
+  log(`Email: ${email}`)
   
   try {
-    // 启动浏览器
-    log('\n步骤1: 启动浏览器，访问 Outlook 激活页面...')
+    // Launch browser
+    log('\nStep 1: Launching browser, visiting Outlook activation page...')
     browser = await chromium.launch({
       headless: false,
       args: ['--disable-blink-features=AutomationControlled']
@@ -441,11 +439,11 @@ export async function activateOutlook(
     const page = await context.newPage()
     
     await page.goto(activationUrl, { waitUntil: 'networkidle', timeout: 60000 })
-    log('✓ 页面加载完成')
+    log('Page loaded successfully')
     await page.waitForTimeout(2000)
     
-    // 步骤2: 等待邮箱输入框出现并输入邮箱
-    log('\n步骤2: 输入邮箱...')
+    // Step 2: Wait for email input field and enter email
+    log('\nStep 2: Entering email...')
     const emailInputSelectors = [
       'input#i0116[type="email"]',
       'input[name="loginfmt"]',
@@ -458,7 +456,7 @@ export async function activateOutlook(
         const element = page.locator(selector).first()
         await element.waitFor({ state: 'visible', timeout: 10000 })
         await element.fill(email)
-        log(`✓ 已输入邮箱: ${email}`)
+        log(`Entered email: ${email}`)
         emailFilled = true
         break
       } catch {
@@ -467,27 +465,26 @@ export async function activateOutlook(
     }
     
     if (!emailFilled) {
-      throw new Error('未找到邮箱输入框')
+      throw new Error('Email input field not found')
     }
     
     await page.waitForTimeout(1000)
     
-    // 步骤3: 点击第一个下一步按钮
-    log('\n步骤3: 点击下一步按钮...')
+    // Step 3: Click first next button
+    log('\nStep 3: Clicking next button...')
     const firstNextSelectors = [
       'input#idSIButton9[type="submit"]',
-      'input[type="submit"][value="下一步"]',
       'input[type="submit"][value="Next"]'
     ]
     
-    if (!await tryClickSelectors(page, firstNextSelectors, log, '第一个下一步按钮')) {
-      throw new Error('点击第一个下一步按钮失败')
+    if (!await tryClickSelectors(page, firstNextSelectors, log, 'first next button')) {
+      throw new Error('Failed to click first next button')
     }
     
     await page.waitForTimeout(3000)
     
-    // 步骤4: 等待密码输入框出现并输入密码
-    log('\n步骤4: 输入密码...')
+    // Step 4: Wait for password input field and enter password
+    log('\nStep 4: Entering password...')
     const passwordInputSelectors = [
       'input#passwordEntry[type="password"]',
       'input#i0118[type="password"]',
@@ -501,7 +498,7 @@ export async function activateOutlook(
         const element = page.locator(selector).first()
         await element.waitFor({ state: 'visible', timeout: 15000 })
         await element.fill(emailPassword)
-        log('✓ 已输入密码')
+        log('Entered password')
         passwordFilled = true
         break
       } catch {
@@ -510,91 +507,83 @@ export async function activateOutlook(
     }
     
     if (!passwordFilled) {
-      throw new Error('未找到密码输入框')
+      throw new Error('Password input field not found')
     }
     
     await page.waitForTimeout(1000)
     
-    // 步骤5: 点击第二个下一步/登录按钮
-    log('\n步骤5: 点击登录按钮...')
+    // Step 5: Click second next/login button
+    log('\nStep 5: Clicking login button...')
     const loginButtonSelectors = [
       'button[type="submit"][data-testid="primaryButton"]',
       'input#idSIButton9[type="submit"]',
-      'button:has-text("下一步")',
-      'button:has-text("登录")',
       'button:has-text("Sign in")',
       'button:has-text("Next")'
     ]
     
-    if (!await tryClickSelectors(page, loginButtonSelectors, log, '登录按钮')) {
-      throw new Error('点击登录按钮失败')
+    if (!await tryClickSelectors(page, loginButtonSelectors, log, 'login button')) {
+      throw new Error('Failed to click login button')
     }
     
     await page.waitForTimeout(3000)
     
-    // 步骤6: 等待第一个"暂时跳过"链接并点击
-    log('\n步骤6: 点击第一个"暂时跳过"链接...')
+    // Step 6: Wait for first "Skip for now" link and click
+    log('\nStep 6: Clicking first "Skip for now" link...')
     const skipSelector = 'a#iShowSkip'
     try {
       const skipElement = page.locator(skipSelector).first()
       await skipElement.waitFor({ state: 'visible', timeout: 30000 })
       await skipElement.click()
-      log('✓ 已点击第一个"暂时跳过"')
+      log('Clicked first "Skip for now"')
       await page.waitForTimeout(3000)
     } catch {
-      log('未找到第一个"暂时跳过"链接，可能已跳过此步骤')
+      log('First "Skip for now" link not found, may have skipped this step')
     }
     
-    // 步骤7: 等待第二个"暂时跳过"链接并点击
-    log('\n步骤7: 点击第二个"暂时跳过"链接...')
+    // Step 7: Wait for second "Skip for now" link and click
+    log('\nStep 7: Clicking second "Skip for now" link...')
     try {
       const skipElement = page.locator(skipSelector).first()
       await skipElement.waitFor({ state: 'visible', timeout: 15000 })
       await skipElement.click()
-      log('✓ 已点击第二个"暂时跳过"')
+      log('Clicked second "Skip for now"')
       await page.waitForTimeout(3000)
     } catch {
-      log('未找到第二个"暂时跳过"链接，可能已跳过此步骤')
+      log('Second "Skip for now" link not found, may have skipped this step')
     }
     
-    // 步骤8: 等待"取消"按钮（密钥创建对话框）并点击
-    log('\n步骤8: 点击"取消"按钮（跳过密钥创建）...')
+    // Step 8: Wait for "Cancel" button (passkey creation dialog) and click
+    log('\nStep 8: Clicking "Cancel" button (skip passkey creation)...')
     const cancelButtonSelectors = [
-      'button[data-testid="secondaryButton"]:has-text("取消")',
       'button[data-testid="secondaryButton"]:has-text("Cancel")',
-      'button[type="button"]:has-text("取消")',
       'button[type="button"]:has-text("Cancel")'
     ]
     
-    if (!await tryClickSelectors(page, cancelButtonSelectors, log, '"取消"按钮', 15000)) {
-      log('未找到"取消"按钮，可能已跳过此步骤')
+    if (!await tryClickSelectors(page, cancelButtonSelectors, log, '"Cancel" button', 15000)) {
+      log('"Cancel" button not found, may have skipped this step')
     }
     
     await page.waitForTimeout(3000)
     
-    // 步骤9: 等待"是"按钮（保持登录状态）并点击
-    log('\n步骤9: 点击"是"按钮（保持登录状态）...')
+    // Step 9: Wait for "Yes" button (stay signed in) and click
+    log('\nStep 9: Clicking "Yes" button (stay signed in)...')
     const yesButtonSelectors = [
-      'button[type="submit"][data-testid="primaryButton"]:has-text("是")',
       'button[type="submit"][data-testid="primaryButton"]:has-text("Yes")',
-      'input#idSIButton9[value="是"]',
       'input#idSIButton9[value="Yes"]',
-      'button:has-text("是")',
       'button:has-text("Yes")'
     ]
     
-    if (!await tryClickSelectors(page, yesButtonSelectors, log, '"是"按钮', 15000)) {
-      log('未找到"是"按钮，可能已跳过此步骤')
+    if (!await tryClickSelectors(page, yesButtonSelectors, log, '"Yes" button', 15000)) {
+      log('"Yes" button not found, may have skipped this step')
     }
     
     await page.waitForTimeout(5000)
     
-    // 步骤10: 等待 Outlook 邮箱加载完成
-    log('\n步骤10: 等待 Outlook 邮箱加载完成...')
+    // Step 10: Wait for Outlook email to load
+    log('\nStep 10: Waiting for Outlook email to load...')
     const newMailSelectors = [
       'button[aria-label="New mail"]',
       'button:has-text("New mail")',
-      'button:has-text("新邮件")',
       'span:has-text("New mail")',
       '[data-automation-type="RibbonSplitButton"]'
     ]
@@ -604,7 +593,7 @@ export async function activateOutlook(
       try {
         const element = page.locator(selector).first()
         await element.waitFor({ state: 'visible', timeout: 30000 })
-        log('✓ Outlook 邮箱激活成功！')
+        log('Outlook email activation successful!')
         outlookLoaded = true
         break
       } catch {
@@ -613,10 +602,10 @@ export async function activateOutlook(
     }
     
     if (!outlookLoaded) {
-      // 检查是否已经在收件箱页面
+      // Check if already on inbox page
       const currentUrl = page.url()
       if (currentUrl.toLowerCase().includes('outlook') || currentUrl.toLowerCase().includes('mail')) {
-        log('✓ 已进入 Outlook 邮箱页面，激活成功！')
+        log('Already on Outlook email page, activation successful!')
         outlookLoaded = true
       }
     }
@@ -626,15 +615,15 @@ export async function activateOutlook(
     browser = null
     
     if (outlookLoaded) {
-      log('\n========== Outlook 邮箱激活完成 ==========')
+      log('\n========== Outlook Email Activation Complete ==========')
       return { success: true }
     } else {
-      log('\n⚠ Outlook 邮箱激活可能未完成')
-      return { success: false, error: 'Outlook 邮箱激活可能未完成' }
+      log('\nWarning: Outlook email activation may not be complete')
+      return { success: false, error: 'Outlook email activation may not be complete' }
     }
     
   } catch (error) {
-    log(`\n✗ Outlook 激活失败: ${error}`)
+    log(`\nOutlook activation failed: ${error}`)
     if (browser) {
       try { await browser.close() } catch {}
     }
@@ -643,14 +632,14 @@ export async function activateOutlook(
 }
 
 /**
- * AWS Builder ID 自动注册
- * @param email 邮箱地址
- * @param refreshToken OAuth2 刷新令牌
- * @param clientId Graph API 客户端ID
- * @param log 日志回调
- * @param emailPassword 邮箱密码（用于 Outlook 激活）
- * @param skipOutlookActivation 是否跳过 Outlook 激活
- * @param proxyUrl 代理地址（仅用于 AWS 注册，不用于 Outlook 激活和获取验证码）
+ * AWS Builder ID Auto Registration
+ * @param email Email address
+ * @param refreshToken OAuth2 refresh token
+ * @param clientId Graph API client ID
+ * @param log Log callback
+ * @param emailPassword Email password (for Outlook activation)
+ * @param skipOutlookActivation Whether to skip Outlook activation
+ * @param proxyUrl Proxy address (only for AWS registration, not for Outlook activation and verification code fetch)
  */
 export async function autoRegisterAWS(
   email: string,
@@ -665,31 +654,31 @@ export async function autoRegisterAWS(
   const randomName = generateRandomName()
   let browser: Browser | null = null
   
-  // 如果是 Outlook 邮箱且提供了密码，先激活（不使用代理）
+  // If Outlook email and password provided, activate first (without proxy)
   if (!skipOutlookActivation && email.toLowerCase().includes('outlook') && emailPassword) {
-    log('检测到 Outlook 邮箱，先进行激活（不使用代理）...')
+    log('Detected Outlook email, activating first (without proxy)...')
     const activationResult = await activateOutlook(email, emailPassword, log)
     if (!activationResult.success) {
-      log(`⚠ Outlook 激活可能未完成: ${activationResult.error}`)
-      log('继续尝试 AWS 注册...')
+      log(`Warning: Outlook activation may not be complete: ${activationResult.error}`)
+      log('Continuing with AWS registration...')
     } else {
-      log('Outlook 激活成功，开始 AWS 注册...')
+      log('Outlook activation successful, starting AWS registration...')
     }
-    // 等待一下再继续
+    // Wait before continuing
     await new Promise(r => setTimeout(r, 2000))
   }
   
-  log('========== 开始 AWS Builder ID 注册 ==========')
-  log(`邮箱: ${email}`)
-  log(`姓名: ${randomName}`)
-  log(`密码: ${password}`)
+  log('========== Starting AWS Builder ID Registration ==========')
+  log(`Email: ${email}`)
+  log(`Name: ${randomName}`)
+  log(`Password: ${password}`)
   if (proxyUrl) {
-    log(`代理: ${proxyUrl}`)
+    log(`Proxy: ${proxyUrl}`)
   }
   
   try {
-    // 步骤1: 创建浏览器，进入注册页面（使用代理）
-    log('\n步骤1: 启动浏览器，进入注册页面...')
+    // Step 1: Create browser, go to registration page (using proxy)
+    log('\nStep 1: Launching browser, going to registration page...')
     browser = await chromium.launch({
       headless: false,
       proxy: proxyUrl ? { server: proxyUrl } : undefined,
@@ -705,46 +694,46 @@ export async function autoRegisterAWS(
     
     const registerUrl = 'https://view.awsapps.com/start/#/device?user_code=PQCF-FCCN'
     await page.goto(registerUrl, { waitUntil: 'networkidle', timeout: 60000 })
-    log('✓ 页面加载完成')
+    log('Page loaded')
     await page.waitForTimeout(2000)
     
-    // 等待邮箱输入框出现并输入邮箱
-    // 选择器: input[placeholder="username@example.com"]
+    // Wait for email input field and enter email
+    // Selector: input[placeholder="username@example.com"]
     const emailInputSelector = 'input[placeholder="username@example.com"]'
-    if (!await waitAndFill(page, emailInputSelector, email, log, '邮箱输入框')) {
-      throw new Error('未找到邮箱输入框')
+    if (!await waitAndFill(page, emailInputSelector, email, log, 'email input field')) {
+      throw new Error('Email input field not found')
     }
     
     await page.waitForTimeout(1000)
     
-    // 点击第一个继续按钮（带错误检测和自动重试）
-    // 选择器: button[data-testid="test-primary-button"]
+    // Click first continue button (with error detection and auto retry)
+    // Selector: button[data-testid="test-primary-button"]
     const firstContinueSelector = 'button[data-testid="test-primary-button"]'
-    if (!await waitAndClickWithRetry(page, firstContinueSelector, log, '第一个继续按钮')) {
-      throw new Error('点击第一个继续按钮失败')
+    if (!await waitAndClickWithRetry(page, firstContinueSelector, log, 'first continue button')) {
+      throw new Error('Failed to click first continue button')
     }
     
     await page.waitForTimeout(3000)
     
-    // 检测是否是已注册账号（登录页面或验证页面）
-    // 登录页面标识1: span 包含 "Sign in with your AWS Builder ID"
-    // 登录页面标识2: 页面包含 "verify" 字样且有验证码输入框
+    // Detect if this is a registered account (login page or verification page)
+    // Login page indicator 1: span contains "Sign in with your AWS Builder ID"
+    // Login page indicator 2: page contains "verify" and has verification code input
     const loginHeadingSelector = 'span[class*="awsui_heading-text"]:has-text("Sign in with your AWS Builder ID")'
     const verifyHeadingSelector = 'span[class*="awsui_heading-text"]:has-text("Verify")'
     const verifyCodeInputSelector = 'input[placeholder="6-digit"]'
     const nameInputSelector = 'input[placeholder="Maria José Silva"]'
     
     let isLoginFlow = false
-    let isVerifyFlow = false  // 直接进入验证码步骤的登录流程
+    let isVerifyFlow = false  // Login flow that goes directly to verification code step
     
     try {
-      // 同时检测登录页面、验证页面和注册页面的元素
+      // Simultaneously detect login page, verification page and registration page elements
       const loginHeading = page.locator(loginHeadingSelector).first()
       const verifyHeading = page.locator(verifyHeadingSelector).first()
       const verifyCodeInput = page.locator(verifyCodeInputSelector).first()
       const nameInput = page.locator(nameInputSelector).first()
       
-      // 等待其中一个元素出现
+      // Wait for one of the elements to appear
       const result = await Promise.race([
         loginHeading.waitFor({ state: 'visible', timeout: 10000 }).then(() => 'login'),
         verifyHeading.waitFor({ state: 'visible', timeout: 10000 }).then(() => 'verify'),
@@ -759,13 +748,13 @@ export async function autoRegisterAWS(
         isVerifyFlow = true
       }
     } catch {
-      // 如果都没找到，尝试单独检测
+      // If none found, try detecting individually
       try {
         await page.locator(loginHeadingSelector).first().waitFor({ state: 'visible', timeout: 3000 })
         isLoginFlow = true
       } catch {
         try {
-          // 检测 verify 标题或验证码输入框
+          // Detect verify heading or verification code input
           const hasVerify = await page.locator(verifyHeadingSelector).first().isVisible().catch(() => false)
           const hasVerifyInput = await page.locator(verifyCodeInputSelector).first().isVisible().catch(() => false)
           if (hasVerify || hasVerifyInput) {
@@ -779,39 +768,38 @@ export async function autoRegisterAWS(
     }
     
     if (isLoginFlow) {
-      // ========== 登录流程（邮箱已注册）==========
+      // ========== Login Flow (Email Already Registered) ==========
       if (isVerifyFlow) {
-        log('\n⚠ 检测到验证页面，邮箱已注册，直接进入验证码步骤...')
+        log('\nWarning: Detected verification page, email already registered, going directly to verification code step...')
       } else {
-        log('\n⚠ 检测到邮箱已注册，切换到登录流程...')
+        log('\nWarning: Detected email already registered, switching to login flow...')
       }
       
-      // 如果不是直接验证流程，需要先输入密码
+      // If not direct verification flow, need to enter password first
       if (!isVerifyFlow) {
-        // 步骤2(登录): 输入密码
-        log('\n步骤2(登录): 输入密码...')
+        // Step 2 (Login): Enter password
+        log('\nStep 2 (Login): Entering password...')
         const loginPasswordSelector = 'input[placeholder="Enter password"]'
-        if (!await waitAndFill(page, loginPasswordSelector, password, log, '登录密码输入框')) {
-          throw new Error('未找到登录密码输入框')
+        if (!await waitAndFill(page, loginPasswordSelector, password, log, 'login password input field')) {
+          throw new Error('Login password input field not found')
         }
         
         await page.waitForTimeout(1000)
         
-        // 点击继续按钮
+        // Click continue button
         const loginContinueSelector = 'button[data-testid="test-primary-button"]'
-        if (!await waitAndClickWithRetry(page, loginContinueSelector, log, '登录继续按钮')) {
-          throw new Error('点击登录继续按钮失败')
+        if (!await waitAndClickWithRetry(page, loginContinueSelector, log, 'login continue button')) {
+          throw new Error('Failed to click login continue button')
         }
         
         await page.waitForTimeout(3000)
       }
       
-      // 步骤3(登录): 等待验证码输入框出现，获取并输入验证码
-      log('\n步骤3(登录): 获取并输入验证码...')
-      // 登录验证码输入框选择器（支持多种 placeholder）
+      // Step 3 (Login): Wait for verification code input, get and enter code
+      log('\nStep 3 (Login): Getting and entering verification code...')
+      // Login verification code input selectors (support multiple placeholders)
       const loginCodeSelectors = [
         'input[placeholder="6-digit"]',
-        'input[placeholder="6 位数"]',
         'input[class*="awsui_input"][type="text"]'
       ]
       
@@ -820,7 +808,7 @@ export async function autoRegisterAWS(
         try {
           await page.locator(selector).first().waitFor({ state: 'visible', timeout: 10000 })
           loginCodeInput = selector
-          log('✓ 登录验证码输入框已出现')
+          log('Login verification code input field appeared')
           break
         } catch {
           continue
@@ -828,132 +816,132 @@ export async function autoRegisterAWS(
       }
       
       if (!loginCodeInput) {
-        throw new Error('未找到登录验证码输入框')
+        throw new Error('Login verification code input field not found')
       }
       
       await page.waitForTimeout(1000)
       
-      // 自动获取验证码
+      // Auto-fetch verification code
       let loginVerificationCode: string | null = null
       if (refreshToken && clientId) {
         loginVerificationCode = await getOutlookVerificationCode(refreshToken, clientId, log, 120)
       } else {
-        log('缺少 refresh_token 或 client_id，无法自动获取验证码')
+        log('Missing refresh_token or client_id, cannot auto-fetch verification code')
       }
       
       if (!loginVerificationCode) {
-        throw new Error('无法获取登录验证码')
+        throw new Error('Unable to get login verification code')
       }
       
-      // 输入验证码
-      if (!await waitAndFill(page, loginCodeInput, loginVerificationCode, log, '登录验证码')) {
-        throw new Error('输入登录验证码失败')
+      // Enter verification code
+      if (!await waitAndFill(page, loginCodeInput, loginVerificationCode, log, 'login verification code')) {
+        throw new Error('Failed to enter login verification code')
       }
       
       await page.waitForTimeout(1000)
       
-      // 点击验证码确认按钮
+      // Click verification code confirm button
       const loginVerifySelector = 'button[data-testid="test-primary-button"]'
-      if (!await waitAndClickWithRetry(page, loginVerifySelector, log, '登录验证码确认按钮')) {
-        throw new Error('点击登录验证码确认按钮失败')
+      if (!await waitAndClickWithRetry(page, loginVerifySelector, log, 'login verification code confirm button')) {
+        throw new Error('Failed to click login verification code confirm button')
       }
       
       await page.waitForTimeout(5000)
       
     } else {
-      // ========== 注册流程（新账号）==========
-      // 步骤2: 等待姓名输入框出现，输入姓名
-      log('\n步骤2: 输入姓名...')
-      if (!await waitAndFill(page, nameInputSelector, randomName, log, '姓名输入框')) {
-        throw new Error('未找到姓名输入框')
+      // ========== Registration Flow (New Account) ==========
+      // Step 2: Wait for name input field, enter name
+      log('\nStep 2: Entering name...')
+      if (!await waitAndFill(page, nameInputSelector, randomName, log, 'name input field')) {
+        throw new Error('Name input field not found')
       }
       
       await page.waitForTimeout(1000)
       
-      // 点击第二个继续按钮（带错误检测和自动重试）
-      // 选择器: button[data-testid="signup-next-button"]
+      // Click second continue button (with error detection and auto retry)
+      // Selector: button[data-testid="signup-next-button"]
       const secondContinueSelector = 'button[data-testid="signup-next-button"]'
-      if (!await waitAndClickWithRetry(page, secondContinueSelector, log, '第二个继续按钮')) {
-        throw new Error('点击第二个继续按钮失败')
+      if (!await waitAndClickWithRetry(page, secondContinueSelector, log, 'second continue button')) {
+        throw new Error('Failed to click second continue button')
       }
       
       await page.waitForTimeout(3000)
       
-      // 步骤3: 等待验证码输入框出现，获取并输入验证码
-      log('\n步骤3: 获取并输入验证码...')
-      // 选择器: input[placeholder="6 位数"]
-      const codeInputSelector = 'input[placeholder="6 位数"]'
+      // Step 3: Wait for verification code input, get and enter code
+      log('\nStep 3: Getting and entering verification code...')
+      // Selector: input[placeholder="6-digit"]
+      const codeInputSelector = 'input[placeholder="6-digit"]'
       
-      // 先等待验证码输入框出现
-      log('等待验证码输入框出现...')
+      // Wait for verification code input to appear
+      log('Waiting for verification code input field...')
       try {
         await page.locator(codeInputSelector).first().waitFor({ state: 'visible', timeout: 30000 })
-        log('✓ 验证码输入框已出现')
+        log('Verification code input field appeared')
       } catch {
-        throw new Error('未找到验证码输入框')
+        throw new Error('Verification code input field not found')
       }
       
       await page.waitForTimeout(1000)
       
-      // 自动获取验证码
+      // Auto-fetch verification code
       let verificationCode: string | null = null
       if (refreshToken && clientId) {
         verificationCode = await getOutlookVerificationCode(refreshToken, clientId, log, 120)
       } else {
-        log('缺少 refresh_token 或 client_id，无法自动获取验证码')
+        log('Missing refresh_token or client_id, cannot auto-fetch verification code')
       }
       
       if (!verificationCode) {
-        throw new Error('无法获取验证码')
+        throw new Error('Unable to get verification code')
       }
       
-      // 输入验证码
-      if (!await waitAndFill(page, codeInputSelector, verificationCode, log, '验证码')) {
-        throw new Error('输入验证码失败')
+      // Enter verification code
+      if (!await waitAndFill(page, codeInputSelector, verificationCode, log, 'verification code')) {
+        throw new Error('Failed to enter verification code')
       }
       
       await page.waitForTimeout(1000)
       
-      // 点击 Continue 按钮（带错误检测和自动重试）
-      // 选择器: button[data-testid="email-verification-verify-button"]
+      // Click Continue button (with error detection and auto retry)
+      // Selector: button[data-testid="email-verification-verify-button"]
       const verifyButtonSelector = 'button[data-testid="email-verification-verify-button"]'
-      if (!await waitAndClickWithRetry(page, verifyButtonSelector, log, 'Continue 按钮')) {
-        throw new Error('点击 Continue 按钮失败')
+      if (!await waitAndClickWithRetry(page, verifyButtonSelector, log, 'Continue button')) {
+        throw new Error('Failed to click Continue button')
       }
       
       await page.waitForTimeout(3000)
       
-      // 步骤4: 等待密码输入框出现，输入密码
-      log('\n步骤4: 输入密码...')
-      // 选择器: input[placeholder="Enter password"]
+      // Step 4: Wait for password input, enter password
+      log('\nStep 4: Entering password...')
+      // Selector: input[placeholder="Enter password"]
       const passwordInputSelector = 'input[placeholder="Enter password"]'
-      if (!await waitAndFill(page, passwordInputSelector, password, log, '密码输入框')) {
-        throw new Error('未找到密码输入框')
+      if (!await waitAndFill(page, passwordInputSelector, password, log, 'password input field')) {
+        throw new Error('Password input field not found')
       }
       
       await page.waitForTimeout(500)
       
-      // 输入确认密码
-      // 选择器: input[placeholder="Re-enter password"]
+      // Enter confirm password
+      // Selector: input[placeholder="Re-enter password"]
       const confirmPasswordSelector = 'input[placeholder="Re-enter password"]'
-      if (!await waitAndFill(page, confirmPasswordSelector, password, log, '确认密码输入框')) {
-        throw new Error('未找到确认密码输入框')
+      if (!await waitAndFill(page, confirmPasswordSelector, password, log, 'confirm password input field')) {
+        throw new Error('Confirm password input field not found')
       }
       
       await page.waitForTimeout(1000)
       
-      // 点击第三个继续按钮（带错误检测和自动重试）
-      // 选择器: button[data-testid="test-primary-button"]
+      // Click third continue button (with error detection and auto retry)
+      // Selector: button[data-testid="test-primary-button"]
       const thirdContinueSelector = 'button[data-testid="test-primary-button"]'
-      if (!await waitAndClickWithRetry(page, thirdContinueSelector, log, '第三个继续按钮')) {
-        throw new Error('点击第三个继续按钮失败')
+      if (!await waitAndClickWithRetry(page, thirdContinueSelector, log, 'third continue button')) {
+        throw new Error('Failed to click third continue button')
       }
       
       await page.waitForTimeout(5000)
     }
     
-    // 步骤5: 获取 SSO Token（登录和注册流程共用）
-    log('\n步骤5: 获取 SSO Token...')
+    // Step 5: Get SSO Token (shared by login and registration flows)
+    log('\nStep 5: Getting SSO Token...')
     let ssoToken: string | null = null
     
     for (let i = 0; i < 30; i++) {
@@ -961,10 +949,10 @@ export async function autoRegisterAWS(
       const ssoCookie = cookies.find(c => c.name === 'x-amz-sso_authn')
       if (ssoCookie) {
         ssoToken = ssoCookie.value
-        log(`✓ 成功获取 SSO Token (x-amz-sso_authn)!`)
+        log(`Successfully got SSO Token (x-amz-sso_authn)!`)
         break
       }
-      log(`等待 SSO Token... (${i + 1}/30)`)
+      log(`Waiting for SSO Token... (${i + 1}/30)`)
       await page.waitForTimeout(1000)
     }
     
@@ -972,14 +960,14 @@ export async function autoRegisterAWS(
     browser = null
     
     if (ssoToken) {
-      log('\n========== 操作成功! ==========')
+      log('\n========== Operation Successful! ==========')
       return { success: true, ssoToken, name: randomName }
     } else {
-      throw new Error('未能获取 SSO Token，可能操作未完成')
+      throw new Error('Failed to get SSO Token, operation may not be complete')
     }
     
   } catch (error) {
-    log(`\n✗ 注册失败: ${error}`)
+    log(`\nRegistration failed: ${error}`)
     if (browser) {
       try { await browser.close() } catch {}
     }

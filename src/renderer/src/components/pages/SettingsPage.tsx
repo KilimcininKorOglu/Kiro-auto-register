@@ -4,52 +4,52 @@ import { Eye, EyeOff, RefreshCw, Clock, Trash2, Download, Upload, Globe, Repeat,
 import { useState } from 'react'
 import { ExportDialog } from '../accounts/ExportDialog'
 
-// 主题配置 - 按色系分组
+// Theme configuration - grouped by color family
 const themeGroups = [
   {
-    name: '蓝色系',
+    name: 'Blue',
     themes: [
-      { id: 'default', name: '天空蓝', color: '#3b82f6' },
-      { id: 'indigo', name: '靛蓝', color: '#6366f1' },
-      { id: 'cyan', name: '清新青', color: '#06b6d4' },
-      { id: 'sky', name: '晴空蓝', color: '#0ea5e9' },
-      { id: 'teal', name: '水鸭蓝', color: '#14b8a6' },
+      { id: 'default', name: 'Sky Blue', color: '#3b82f6' },
+      { id: 'indigo', name: 'Indigo', color: '#6366f1' },
+      { id: 'cyan', name: 'Cyan', color: '#06b6d4' },
+      { id: 'sky', name: 'Clear Sky', color: '#0ea5e9' },
+      { id: 'teal', name: 'Teal', color: '#14b8a6' },
     ]
   },
   {
-    name: '紫红系',
+    name: 'Purple & Pink',
     themes: [
-      { id: 'purple', name: '优雅紫', color: '#a855f7' },
-      { id: 'violet', name: '紫罗兰', color: '#8b5cf6' },
-      { id: 'fuchsia', name: '洋红', color: '#d946ef' },
-      { id: 'pink', name: '粉红', color: '#ec4899' },
-      { id: 'rose', name: '玫瑰红', color: '#f43f5e' },
+      { id: 'purple', name: 'Purple', color: '#a855f7' },
+      { id: 'violet', name: 'Violet', color: '#8b5cf6' },
+      { id: 'fuchsia', name: 'Fuchsia', color: '#d946ef' },
+      { id: 'pink', name: 'Pink', color: '#ec4899' },
+      { id: 'rose', name: 'Rose', color: '#f43f5e' },
     ]
   },
   {
-    name: '暖色系',
+    name: 'Warm',
     themes: [
-      { id: 'red', name: '热情红', color: '#ef4444' },
-      { id: 'orange', name: '活力橙', color: '#f97316' },
-      { id: 'amber', name: '琥珀金', color: '#f59e0b' },
-      { id: 'yellow', name: '明黄', color: '#eab308' },
+      { id: 'red', name: 'Red', color: '#ef4444' },
+      { id: 'orange', name: 'Orange', color: '#f97316' },
+      { id: 'amber', name: 'Amber', color: '#f59e0b' },
+      { id: 'yellow', name: 'Yellow', color: '#eab308' },
     ]
   },
   {
-    name: '绿色系',
+    name: 'Green',
     themes: [
-      { id: 'emerald', name: '翠绿', color: '#10b981' },
-      { id: 'green', name: '草绿', color: '#22c55e' },
-      { id: 'lime', name: '青柠', color: '#84cc16' },
+      { id: 'emerald', name: 'Emerald', color: '#10b981' },
+      { id: 'green', name: 'Green', color: '#22c55e' },
+      { id: 'lime', name: 'Lime', color: '#84cc16' },
     ]
   },
   {
-    name: '中性色',
+    name: 'Neutral',
     themes: [
-      { id: 'slate', name: '石板灰', color: '#64748b' },
-      { id: 'zinc', name: '锌灰', color: '#71717a' },
-      { id: 'stone', name: '暖灰', color: '#78716c' },
-      { id: 'neutral', name: '中性灰', color: '#737373' },
+      { id: 'slate', name: 'Slate', color: '#64748b' },
+      { id: 'zinc', name: 'Zinc', color: '#71717a' },
+      { id: 'stone', name: 'Stone', color: '#78716c' },
+      { id: 'neutral', name: 'Neutral', color: '#737373' },
     ]
   }
 ]
@@ -88,7 +88,7 @@ export function SettingsPage() {
   const [tempProxyUrl, setTempProxyUrl] = useState(proxyUrl)
   const [themeExpanded, setThemeExpanded] = useState(false)
 
-  // Kiro 服务器相关状态
+  // Kiro server related state
   const [tempServerUrl, setTempServerUrl] = useState(kiroServerUrl)
   const [tempServerPassword, setTempServerPassword] = useState(kiroServerPassword)
   const [serverTestStatus, setServerTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
@@ -107,35 +107,35 @@ export function SettingsPage() {
       if (fileData && 'content' in fileData && fileData.format === 'json') {
         const data = JSON.parse(fileData.content)
         const importResult = importFromExportData(data)
-        alert(`导入完成：成功 ${importResult.success} 个，失败 ${importResult.failed} 个`)
+        alert(`Import complete: ${importResult.success} succeeded, ${importResult.failed} failed`)
       } else if (fileData && 'isMultiple' in fileData) {
-        alert('设置页面不支持批量导入，请使用账号管理页面')
+        alert('Settings page does not support batch import, please use Account Management page')
       } else if (fileData) {
-        alert('设置页面仅支持 JSON 格式导入，请使用账号管理页面导入 CSV/TXT')
+        alert('Settings page only supports JSON format import, please use Account Management page for CSV/TXT')
       }
     } catch (e) {
-      alert(`导入失败: ${e instanceof Error ? e.message : '未知错误'}`)
+      alert(`Import failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
     } finally {
       setIsImporting(false)
     }
   }
 
   const handleClearData = () => {
-    if (confirm('确定要清除所有账号数据吗？此操作不可恢复！')) {
-      if (confirm('再次确认：这将删除所有账号、分组和标签数据！')) {
-        // 清除所有数据
+    if (confirm('Are you sure you want to clear all account data? This action cannot be undone!')) {
+      if (confirm('Confirm again: This will delete all accounts, groups, and tags!')) {
+        // Clear all data
         Array.from(accounts.keys()).forEach(id => {
           useAccountsStore.getState().removeAccount(id)
         })
-        alert('所有数据已清除')
+        alert('All data has been cleared')
       }
     }
   }
 
-  // 测试服务器连接
+  // Test server connection
   const handleTestServerConnection = async () => {
     if (!tempServerUrl || !tempServerPassword) {
-      alert('请输入服务器地址和密码')
+      alert('Please enter server address and password')
       return
     }
     
@@ -146,32 +146,32 @@ export function SettingsPage() {
       const result = await window.api.testKiroServerConnection(tempServerUrl, tempServerPassword)
       if (result.success) {
         setServerTestStatus('success')
-        // 保存设置
+        // Save settings
         setKiroServer(tempServerUrl, tempServerPassword)
       } else {
         setServerTestStatus('error')
-        setServerTestError(result.error || '连接失败')
+        setServerTestError(result.error || 'Connection failed')
       }
     } catch (error) {
       setServerTestStatus('error')
-      setServerTestError(error instanceof Error ? error.message : '未知错误')
+      setServerTestError(error instanceof Error ? error.message : 'Unknown error')
     }
   }
 
-  // 导入账号到服务器
+  // Import accounts to server
   const handleImportToServer = async () => {
     if (!kiroServerUrl || !kiroServerPassword) {
-      alert('请先配置并测试服务器连接')
+      alert('Please configure and test server connection first')
       return
     }
     
     const accountList = Array.from(accounts.values())
     if (accountList.length === 0) {
-      alert('没有可导入的账号')
+      alert('No accounts to import')
       return
     }
     
-    if (!confirm(`确定要将 ${accountList.length} 个账号导入到服务器吗？`)) {
+    if (!confirm(`Are you sure you want to import ${accountList.length} accounts to the server?`)) {
       return
     }
     
@@ -183,7 +183,7 @@ export function SettingsPage() {
         serverUrl: kiroServerUrl,
         password: kiroServerPassword,
         accounts: accountList
-          .filter(acc => acc.credentials.refreshToken) // 过滤掉没有 refreshToken 的账号
+          .filter(acc => acc.credentials.refreshToken) // Filter out accounts without refreshToken
           .map(acc => ({
             email: acc.email,
             accessToken: acc.credentials.accessToken,
@@ -203,10 +203,10 @@ export function SettingsPage() {
           errors: result.errors || []
         })
       } else {
-        alert(`导入失败: ${result.error}`)
+        alert(`Import failed: ${result.error}`)
       }
     } catch (error) {
-      alert(`导入出错: ${error instanceof Error ? error.message : '未知错误'}`)
+      alert(`Import error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsImportingToServer(false)
     }
@@ -214,7 +214,7 @@ export function SettingsPage() {
 
   return (
     <div className="flex-1 p-6 space-y-6 overflow-auto">
-      {/* 页面头部 */}
+      {/* Page header */}
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 p-6 border border-primary/20">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-2xl" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-primary/20 to-transparent rounded-full blur-2xl" />
@@ -223,28 +223,28 @@ export function SettingsPage() {
             <Settings className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-primary">设置</h1>
-            <p className="text-muted-foreground">配置应用的各项功能</p>
+            <h1 className="text-2xl font-bold text-primary">Settings</h1>
+            <p className="text-muted-foreground">Configure application features</p>
           </div>
         </div>
       </div>
 
-      {/* 主题设置 */}
+      {/* Theme settings */}
       <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <Palette className="h-4 w-4 text-primary" />
             </div>
-            主题设置
+            Theme Settings
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* 深色模式 */}
+          {/* Dark mode */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">深色模式</p>
-              <p className="text-sm text-muted-foreground">切换深色/浅色主题</p>
+              <p className="font-medium">Dark Mode</p>
+              <p className="text-sm text-muted-foreground">Toggle dark/light theme</p>
             </div>
             <Button
               variant={darkMode ? "default" : "outline"}
@@ -252,18 +252,18 @@ export function SettingsPage() {
               onClick={() => setDarkMode(!darkMode)}
             >
               {darkMode ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
-              {darkMode ? '深色' : '浅色'}
+              {darkMode ? 'Dark' : 'Light'}
             </Button>
           </div>
 
-          {/* 主题颜色 */}
+          {/* Theme color */}
           <div className="pt-2 border-t">
             <button 
               className="flex items-center justify-between w-full text-left"
               onClick={() => setThemeExpanded(!themeExpanded)}
             >
               <div className="flex items-center gap-2">
-                <p className="font-medium">主题颜色</p>
+                <p className="font-medium">Theme Color</p>
                 {!themeExpanded && (
                   <div 
                     className="w-5 h-5 rounded-full ring-2 ring-primary ring-offset-1"
@@ -309,21 +309,21 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* 隐私设置 */}
+      {/* Privacy settings */}
       <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               {privacyMode ? <EyeOff className="h-4 w-4 text-primary" /> : <Eye className="h-4 w-4 text-primary" />}
             </div>
-            隐私设置
+            Privacy Settings
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">隐私模式</p>
-              <p className="text-sm text-muted-foreground">隐藏邮箱和账号敏感信息</p>
+              <p className="font-medium">Privacy Mode</p>
+              <p className="text-sm text-muted-foreground">Hide email and sensitive account information</p>
             </div>
             <Button
               variant={privacyMode ? "default" : "outline"}
@@ -331,69 +331,69 @@ export function SettingsPage() {
               onClick={() => setPrivacyMode(!privacyMode)}
             >
               {privacyMode ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-              {privacyMode ? '已开启' : '已关闭'}
+              {privacyMode ? 'Enabled' : 'Disabled'}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Token 刷新设置 */}
+      {/* Token refresh settings */}
       <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <RefreshCw className="h-4 w-4 text-primary" />
             </div>
-            自动刷新
+            Auto Refresh
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">自动刷新</p>
-              <p className="text-sm text-muted-foreground">Token 过期前自动刷新，并同步更新账户信息</p>
+              <p className="font-medium">Auto Refresh</p>
+              <p className="text-sm text-muted-foreground">Automatically refresh tokens before expiry and sync account info</p>
             </div>
             <Button
               variant={autoRefreshEnabled ? "default" : "outline"}
               size="sm"
               onClick={() => setAutoRefresh(!autoRefreshEnabled)}
             >
-              {autoRefreshEnabled ? '已开启' : '已关闭'}
+              {autoRefreshEnabled ? 'Enabled' : 'Disabled'}
             </Button>
           </div>
 
           {autoRefreshEnabled && (
             <>
               <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 space-y-1">
-                <p>• Token 即将过期时自动刷新，保持登录状态</p>
-                <p>• Token 刷新后自动更新账户用量、订阅等信息</p>
-                <p>• 开启自动换号时，会定期检查所有账户余额</p>
+                <p>• Automatically refresh tokens before expiry to maintain login status</p>
+                <p>• Automatically update account usage and subscription info after token refresh</p>
+                <p>• When auto-switch is enabled, periodically check all account balances</p>
               </div>
               <div className="flex items-center justify-between pt-2 border-t">
                 <div>
-                  <p className="font-medium">检查间隔</p>
-                  <p className="text-sm text-muted-foreground">每隔多久检查一次账户状态</p>
+                  <p className="font-medium">Check Interval</p>
+                  <p className="text-sm text-muted-foreground">How often to check account status</p>
                 </div>
                 <select
                   className="w-[120px] h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                   value={autoRefreshInterval}
                   onChange={(e) => setAutoRefresh(true, parseInt(e.target.value))}
                 >
-                  <option value="1">1 分钟</option>
-                  <option value="3">3 分钟</option>
-                  <option value="5">5 分钟</option>
-                  <option value="10">10 分钟</option>
-                  <option value="15">15 分钟</option>
-                  <option value="20">20 分钟</option>
-                  <option value="30">30 分钟</option>
-                  <option value="45">45 分钟</option>
-                  <option value="60">60 分钟</option>
+                  <option value="1">1 min</option>
+                  <option value="3">3 min</option>
+                  <option value="5">5 min</option>
+                  <option value="10">10 min</option>
+                  <option value="15">15 min</option>
+                  <option value="20">20 min</option>
+                  <option value="30">30 min</option>
+                  <option value="45">45 min</option>
+                  <option value="60">60 min</option>
                 </select>
               </div>
               <div className="flex items-center justify-between pt-2 border-t">
                 <div>
-                  <p className="font-medium">刷新并发数</p>
-                  <p className="text-sm text-muted-foreground">同时刷新的账号数量，过大可能卡顿</p>
+                  <p className="font-medium">Refresh Concurrency</p>
+                  <p className="text-sm text-muted-foreground">Number of accounts to refresh simultaneously, too high may cause lag</p>
                 </div>
                 <input
                   type="number"
@@ -409,38 +409,38 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* 代理设置 */}
+      {/* Proxy settings */}
       <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <Globe className="h-4 w-4 text-primary" />
             </div>
-            代理设置
+            Proxy Settings
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">启用代理</p>
-              <p className="text-sm text-muted-foreground">所有网络请求将通过代理服务器</p>
+              <p className="font-medium">Enable Proxy</p>
+              <p className="text-sm text-muted-foreground">All network requests will go through the proxy server</p>
             </div>
             <Button
               variant={proxyEnabled ? "default" : "outline"}
               size="sm"
               onClick={() => setProxy(!proxyEnabled, tempProxyUrl)}
             >
-              {proxyEnabled ? '已开启' : '已关闭'}
+              {proxyEnabled ? 'Enabled' : 'Disabled'}
             </Button>
           </div>
 
           <div className="space-y-2 pt-2 border-t">
-            <label className="text-sm font-medium">代理地址</label>
+            <label className="text-sm font-medium">Proxy Address</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 className="flex-1 h-9 px-3 rounded-lg border bg-background text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                placeholder="http://127.0.0.1:7890 或 socks5://127.0.0.1:1080"
+                placeholder="http://127.0.0.1:7890 or socks5://127.0.0.1:1080"
                 value={tempProxyUrl}
                 onChange={(e) => setTempProxyUrl(e.target.value)}
               />
@@ -450,38 +450,38 @@ export function SettingsPage() {
                 onClick={() => setProxy(proxyEnabled, tempProxyUrl)}
                 disabled={tempProxyUrl === proxyUrl}
               >
-                保存
+                Save
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              支持 HTTP/HTTPS/SOCKS5 代理，格式: protocol://host:port
+              Supports HTTP/HTTPS/SOCKS5 proxy, format: protocol://host:port
             </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* 自动换号设置 */}
+      {/* Auto switch settings */}
       <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <Repeat className="h-4 w-4 text-primary" />
             </div>
-            自动换号
+            Auto Switch
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">启用自动换号</p>
-              <p className="text-sm text-muted-foreground">余额不足时自动切换到其他可用账号</p>
+              <p className="font-medium">Enable Auto Switch</p>
+              <p className="text-sm text-muted-foreground">Automatically switch to another available account when balance is low</p>
             </div>
             <Button
               variant={autoSwitchEnabled ? "default" : "outline"}
               size="sm"
               onClick={() => setAutoSwitch(!autoSwitchEnabled)}
             >
-              {autoSwitchEnabled ? '已开启' : '已关闭'}
+              {autoSwitchEnabled ? 'Enabled' : 'Disabled'}
             </Button>
           </div>
 
@@ -489,8 +489,8 @@ export function SettingsPage() {
             <>
               <div className="flex items-center justify-between pt-2 border-t">
                 <div>
-                  <p className="font-medium">余额阈值</p>
-                  <p className="text-sm text-muted-foreground">余额低于此值时自动切换</p>
+                  <p className="font-medium">Balance Threshold</p>
+                  <p className="text-sm text-muted-foreground">Auto switch when balance falls below this value</p>
                 </div>
                 <input
                   type="number"
@@ -505,21 +505,21 @@ export function SettingsPage() {
                 <div>
                   <p className="font-medium flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    检查间隔
+                    Check Interval
                   </p>
-                  <p className="text-sm text-muted-foreground">每隔多久检查一次余额</p>
+                  <p className="text-sm text-muted-foreground">How often to check balance</p>
                 </div>
                 <select
                   className="h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                   value={autoSwitchInterval}
                   onChange={(e) => setAutoSwitch(true, undefined, parseInt(e.target.value))}
                 >
-                  <option value="1">1 分钟</option>
-                  <option value="3">3 分钟</option>
-                  <option value="5">5 分钟</option>
-                  <option value="10">10 分钟</option>
-                  <option value="15">15 分钟</option>
-                  <option value="30">30 分钟</option>
+                  <option value="1">1 min</option>
+                  <option value="3">3 min</option>
+                  <option value="5">5 min</option>
+                  <option value="10">10 min</option>
+                  <option value="15">15 min</option>
+                  <option value="30">30 min</option>
                 </select>
               </div>
             </>
@@ -527,21 +527,21 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* 批量导入设置 */}
+      {/* Batch import settings */}
       <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <Layers className="h-4 w-4 text-primary" />
             </div>
-            批量导入
+            Batch Import
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">并发数</p>
-              <p className="text-sm text-muted-foreground">同时验证的账号数量，过大可能导致 API 限流</p>
+              <p className="font-medium">Concurrency</p>
+              <p className="text-sm text-muted-foreground">Number of accounts to validate simultaneously, too high may cause API rate limiting</p>
             </div>
             <input
               type="number"
@@ -553,12 +553,12 @@ export function SettingsPage() {
             />
           </div>
           <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-2">
-            建议范围: 10-100。设置过大可能导致大量「验证失败」，设置过小则导入速度较慢。
+            Recommended range: 10-100. Too high may cause many "validation failed" errors, too low will slow down import speed.
           </p>
         </CardContent>
       </Card>
 
-      {/* 机器码管理提示 */}
+      {/* Machine ID management hint */}
       <Card className="border-0 shadow-sm bg-primary/5 border-primary/20 hover:shadow-md transition-shadow duration-200">
         <CardContent className="py-4">
           <div className="flex items-center gap-3">
@@ -566,36 +566,36 @@ export function SettingsPage() {
               <Fingerprint className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="font-medium text-sm">机器码管理</p>
+              <p className="font-medium text-sm">Machine ID Management</p>
               <p className="text-xs text-muted-foreground">
-                修改设备标识符、切号自动换码、账户机器码绑定等功能
+                Modify device identifier, auto-change on account switch, account machine ID binding, etc.
               </p>
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Info className="h-3 w-3" />
-              <span>请在侧边栏「机器码」中设置</span>
+              <span>Please set in sidebar "Machine ID"</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Kiro 服务器导入 */}
+      {/* Kiro server import */}
       <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <Server className="h-4 w-4 text-primary" />
             </div>
-            Kiro 服务器导入
+            Kiro Server Import
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
-            将本地账号批量导入到 Kiro 无限续杯服务器，实现账号池共享
+            Batch import local accounts to Kiro unlimited refill server for account pool sharing
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">服务器地址</label>
+            <label className="text-sm font-medium">Server Address</label>
             <input
               type="text"
               className="w-full h-9 px-3 rounded-lg border bg-background text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
@@ -609,11 +609,11 @@ export function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">管理员密码</label>
+            <label className="text-sm font-medium">Admin Password</label>
             <input
               type="password"
               className="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-              placeholder="服务器管理员密码"
+              placeholder="Server admin password"
               value={tempServerPassword}
               onChange={(e) => {
                 setTempServerPassword(e.target.value)
@@ -638,11 +638,11 @@ export function SettingsPage() {
               ) : (
                 <Globe className="h-4 w-4 mr-2" />
               )}
-              {serverTestStatus === 'testing' ? '测试中...' : '测试连接'}
+              {serverTestStatus === 'testing' ? 'Testing...' : 'Test Connection'}
             </Button>
             
             {serverTestStatus === 'success' && (
-              <span className="text-sm text-green-500">连接成功</span>
+              <span className="text-sm text-green-500">Connection successful</span>
             )}
             {serverTestStatus === 'error' && (
               <span className="text-sm text-red-500">{serverTestError}</span>
@@ -651,9 +651,9 @@ export function SettingsPage() {
 
           <div className="flex items-center justify-between pt-2 border-t">
             <div>
-              <p className="font-medium">导入到服务器</p>
+              <p className="font-medium">Import to Server</p>
               <p className="text-sm text-muted-foreground">
-                将 {accounts.size} 个账号导入到服务器账号池
+                Import {accounts.size} accounts to server account pool
               </p>
             </div>
             <Button 
@@ -667,22 +667,22 @@ export function SettingsPage() {
               ) : (
                 <Send className="h-4 w-4 mr-2" />
               )}
-              {isImportingToServer ? '导入中...' : '导入'}
+              {isImportingToServer ? 'Importing...' : 'Import'}
             </Button>
           </div>
 
           {importResult && (
             <div className={`text-sm p-3 rounded-lg ${importResult.failed > 0 ? 'bg-yellow-50 text-yellow-700' : 'bg-green-50 text-green-700'}`}>
-              <p>导入完成：成功 {importResult.imported} 个，失败 {importResult.failed} 个</p>
+              <p>Import complete: {importResult.imported} succeeded, {importResult.failed} failed</p>
               {importResult.errors.length > 0 && (
                 <div className="mt-2 text-xs">
-                  <p className="font-medium">错误信息：</p>
+                  <p className="font-medium">Error details:</p>
                   <ul className="list-disc list-inside">
                     {importResult.errors.slice(0, 5).map((err, i) => (
                       <li key={i}>{err}</li>
                     ))}
                     {importResult.errors.length > 5 && (
-                      <li>...还有 {importResult.errors.length - 5} 个错误</li>
+                      <li>...and {importResult.errors.length - 5} more errors</li>
                     )}
                   </ul>
                 </div>
@@ -692,53 +692,53 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* 数据管理 */}
+      {/* Data management */}
       <Card className="border-0 shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <Database className="h-4 w-4 text-primary" />
             </div>
-            数据管理
+            Data Management
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">导出数据</p>
-              <p className="text-sm text-muted-foreground">支持 JSON、TXT、CSV、剪贴板等多种格式</p>
+              <p className="font-medium">Export Data</p>
+              <p className="text-sm text-muted-foreground">Supports JSON, TXT, CSV, clipboard and other formats</p>
             </div>
             <Button variant="outline" size="sm" onClick={handleExport}>
               <Download className="h-4 w-4 mr-2" />
-              导出
+              Export
             </Button>
           </div>
 
           <div className="flex items-center justify-between pt-2 border-t">
             <div>
-              <p className="font-medium">导入数据</p>
-              <p className="text-sm text-muted-foreground">从 JSON 文件导入账号数据</p>
+              <p className="font-medium">Import Data</p>
+              <p className="text-sm text-muted-foreground">Import account data from JSON file</p>
             </div>
             <Button variant="outline" size="sm" onClick={handleImport} disabled={isImporting}>
               <Upload className="h-4 w-4 mr-2" />
-              {isImporting ? '导入中...' : '导入'}
+              {isImporting ? 'Importing...' : 'Import'}
             </Button>
           </div>
 
           <div className="flex items-center justify-between pt-2 border-t">
             <div>
-              <p className="font-medium text-destructive">清除所有数据</p>
-              <p className="text-sm text-muted-foreground">删除所有账号、分组和标签</p>
+              <p className="font-medium text-destructive">Clear All Data</p>
+              <p className="text-sm text-muted-foreground">Delete all accounts, groups, and tags</p>
             </div>
             <Button variant="destructive" size="sm" onClick={handleClearData}>
               <Trash2 className="h-4 w-4 mr-2" />
-              清除
+              Clear
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* 导出对话框 */}
+      {/* Export dialog */}
       <ExportDialog
         open={showExportDialog}
         onClose={() => setShowExportDialog(false)}

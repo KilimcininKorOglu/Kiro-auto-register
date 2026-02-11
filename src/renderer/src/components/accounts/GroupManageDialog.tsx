@@ -12,32 +12,32 @@ interface GroupManageDialogProps {
 export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): React.ReactNode {
   const { groups, accounts, addGroup, updateGroup, removeGroup, moveAccountsToGroup } = useAccountsStore()
 
-  // 编辑状态
+  // Edit state
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editColor, setEditColor] = useState('#3b82f6')
 
-  // 新建状态
+  // Create state
   const [isCreating, setIsCreating] = useState(false)
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [newColor, setNewColor] = useState('#3b82f6')
 
-  // 分配账号状态
+  // Assign accounts state
   const [assigningGroupId, setAssigningGroupId] = useState<string | null>(null)
 
-  // 获取分组内的账号数量
+  // Get account count in group
   const getGroupAccountCount = (groupId: string): number => {
     return Array.from(accounts.values()).filter(acc => acc.groupId === groupId).length
   }
 
-  // 获取未分组的账号数量
+  // Get ungrouped account count
   const getUngroupedCount = (): number => {
     return Array.from(accounts.values()).filter(acc => !acc.groupId).length
   }
 
-  // 创建分组
+  // Create group
   const handleCreate = () => {
     if (!newName.trim()) return
     addGroup({
@@ -51,7 +51,7 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
     setIsCreating(false)
   }
 
-  // 开始编辑
+  // Start editing
   const handleStartEdit = (group: AccountGroup) => {
     setEditingId(group.id)
     setEditName(group.name)
@@ -59,7 +59,7 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
     setEditColor(group.color || '#3b82f6')
   }
 
-  // 保存编辑
+  // Save edit
   const handleSaveEdit = () => {
     if (!editingId || !editName.trim()) return
     updateGroup(editingId, {
@@ -70,28 +70,28 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
     setEditingId(null)
   }
 
-  // 删除分组
+  // Delete group
   const handleDelete = (id: string, name: string) => {
     const count = getGroupAccountCount(id)
     const msg = count > 0
-      ? `确定要删除分组「${name}」吗？\n该分组包含 ${count} 个账号，删除后这些账号将变为未分组状态。`
-      : `确定要删除分组「${name}」吗？`
+      ? `Are you sure you want to delete group "${name}"?\nThis group contains ${count} accounts, they will become ungrouped after deletion.`
+      : `Are you sure you want to delete group "${name}"?`
     if (confirm(msg)) {
       removeGroup(id)
     }
   }
 
-  // 批量分配账号到分组（不退出分配模式，允许连续操作）
+  // Batch assign accounts to group (don't exit assign mode, allow continuous operations)
   const handleAssignAccounts = (groupId: string | undefined, accountIds: string[]) => {
     moveAccountsToGroup(accountIds, groupId)
   }
 
-  // 获取可分配的账号列表
+  // Get assignable accounts list
   const getAssignableAccounts = (groupId: string) => {
     return Array.from(accounts.values()).filter(acc => acc.groupId !== groupId)
   }
 
-  // 获取分组内的账号列表
+  // Get accounts in group
   const getGroupAccounts = (groupId: string) => {
     return Array.from(accounts.values()).filter(acc => acc.groupId === groupId)
   }
@@ -108,7 +108,7 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
         <CardHeader className="flex flex-row items-center justify-between pb-2 shrink-0">
           <CardTitle className="flex items-center gap-2">
             <FolderOpen className="h-5 w-5" />
-            分组管理
+            Group Management
           </CardTitle>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
@@ -116,14 +116,14 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
         </CardHeader>
 
         <CardContent className="flex-1 overflow-auto space-y-4">
-          {/* 统计信息 */}
+          {/* Statistics */}
           <div className="flex gap-4 text-sm text-muted-foreground">
-            <span>共 {groupList.length} 个分组</span>
-            <span>•</span>
-            <span>{getUngroupedCount()} 个未分组账号</span>
+            <span>{groupList.length} groups total</span>
+            <span>-</span>
+            <span>{getUngroupedCount()} ungrouped accounts</span>
           </div>
 
-          {/* 新建分组 */}
+          {/* Create group */}
           {isCreating ? (
             <div className="p-4 border rounded-lg space-y-3 bg-muted/30">
               <div className="flex items-center gap-2">
@@ -135,7 +135,7 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
                 />
                 <input
                   type="text"
-                  placeholder="分组名称"
+                  placeholder="Group name"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="flex-1 px-3 py-2 border rounded-lg text-sm"
@@ -144,29 +144,29 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
               </div>
               <input
                 type="text"
-                placeholder="分组描述（可选）"
+                placeholder="Group description (optional)"
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg text-sm"
               />
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => setIsCreating(false)}>
-                  取消
+                  Cancel
                 </Button>
                 <Button size="sm" onClick={handleCreate} disabled={!newName.trim()}>
                   <Check className="h-4 w-4 mr-1" />
-                  创建
+                  Create
                 </Button>
               </div>
             </div>
           ) : (
             <Button variant="outline" className="w-full" onClick={() => setIsCreating(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              新建分组
+              New Group
             </Button>
           )}
 
-          {/* 分组列表 */}
+          {/* Group list */}
           <div className="space-y-2">
             {groupList.map((group) => (
               <div
@@ -174,7 +174,7 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
                 className="p-3 border rounded-lg hover:bg-muted/30 transition-colors"
               >
                 {editingId === group.id ? (
-                  // 编辑模式
+                  // Edit mode
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <input
@@ -193,22 +193,22 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
                     </div>
                     <input
                       type="text"
-                      placeholder="分组描述"
+                      placeholder="Group description"
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
                       className="w-full px-3 py-1.5 border rounded text-sm"
                     />
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" size="sm" onClick={() => setEditingId(null)}>
-                        取消
+                        Cancel
                       </Button>
                       <Button size="sm" onClick={handleSaveEdit}>
-                        保存
+                        Save
                       </Button>
                     </div>
                   </div>
                 ) : assigningGroupId === group.id ? (
-                  // 分配账号模式
+                  // Assign accounts mode
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <div
@@ -216,13 +216,13 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
                         style={{ backgroundColor: group.color || '#3b82f6' }}
                       />
                       <span className="font-medium">{group.name}</span>
-                      <span className="text-sm text-muted-foreground">- 选择要添加的账号</span>
+                      <span className="text-sm text-muted-foreground">- Select accounts to add</span>
                     </div>
                     
-                    {/* 当前分组内的账号 */}
+                    {/* Accounts in current group */}
                     {getGroupAccounts(group.id).length > 0 && (
                       <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">当前分组内的账号：</p>
+                        <p className="text-xs text-muted-foreground">Accounts in this group:</p>
                         <div className="flex flex-wrap gap-1">
                           {getGroupAccounts(group.id).map(acc => (
                             <span
@@ -233,7 +233,7 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
                               <button
                                 onClick={() => handleAssignAccounts(undefined, [acc.id])}
                                 className="hover:text-destructive"
-                                title="移出分组"
+                                title="Remove from group"
                               >
                                 <X className="h-3 w-3" />
                               </button>
@@ -243,10 +243,10 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
                       </div>
                     )}
 
-                    {/* 可添加的账号 */}
+                    {/* Assignable accounts */}
                     {getAssignableAccounts(group.id).length > 0 && (
                       <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">点击添加到此分组：</p>
+                        <p className="text-xs text-muted-foreground">Click to add to this group:</p>
                         <div className="flex flex-wrap gap-1 max-h-32 overflow-auto">
                           {getAssignableAccounts(group.id).map(acc => (
                             <button
@@ -263,12 +263,12 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
 
                     <div className="flex justify-end">
                       <Button variant="outline" size="sm" onClick={() => setAssigningGroupId(null)}>
-                        完成
+                        Done
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  // 显示模式
+                  // Display mode
                   <div className="flex items-center gap-3">
                     <div
                       className="w-4 h-4 rounded shrink-0"
@@ -292,7 +292,7 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
                         size="icon"
                         className="h-8 w-8"
                         onClick={() => setAssigningGroupId(group.id)}
-                        title="管理账号"
+                        title="Manage accounts"
                       >
                         <Users className="h-4 w-4" />
                       </Button>
@@ -301,7 +301,7 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
                         size="icon"
                         className="h-8 w-8"
                         onClick={() => handleStartEdit(group)}
-                        title="编辑"
+                        title="Edit"
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -310,7 +310,7 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
                         onClick={() => handleDelete(group.id, group.name)}
-                        title="删除"
+                        title="Delete"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -323,8 +323,8 @@ export function GroupManageDialog({ isOpen, onClose }: GroupManageDialogProps): 
             {groupList.length === 0 && !isCreating && (
               <div className="text-center py-8 text-muted-foreground">
                 <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>暂无分组</p>
-                <p className="text-sm">点击上方按钮创建第一个分组</p>
+                <p>No groups yet</p>
+                <p className="text-sm">Click the button above to create your first group</p>
               </div>
             )}
           </div>

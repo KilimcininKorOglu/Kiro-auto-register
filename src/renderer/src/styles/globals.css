@@ -27,15 +27,15 @@
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
 
-  /* 账户卡片状态颜色 - 浅色模式 */
-  /* 激活状态 - 跟随主题色 */
+  /* Account card status colors - Light mode */
+  /* Active status - follows theme color */
   --card-active-bg: color-mix(in oklch, var(--color-primary) 10%, transparent);
   --card-active-border: color-mix(in oklch, var(--color-primary) 50%, transparent);
   --card-active-ring: color-mix(in oklch, var(--color-primary) 40%, transparent);
   --card-active-shadow: color-mix(in oklch, var(--color-primary) 25%, transparent);
   --card-active-accent: var(--color-primary);
 
-  /* 封禁状态 - 保持红色警示 */
+  /* Banned status - keep red warning */
   --card-unauthorized-bg: rgba(254, 242, 242, 0.6);
   --card-unauthorized-border: rgba(239, 68, 68, 0.4);
   --card-unauthorized-ring: rgba(248, 113, 113, 0.3);
@@ -43,7 +43,7 @@
   --card-unauthorized-glow: rgba(239, 68, 68, 0.05);
 }
 
-/* 深色模式 */
+/* Dark mode */
 .dark {
   --color-background: oklch(0.16 0.01 260);
   --color-foreground: oklch(0.98 0 0);
@@ -65,15 +65,15 @@
   --color-input: oklch(0.32 0.02 260);
   --color-ring: oklch(0.65 0.2 260);
 
-  /* 账户卡片状态颜色 - 深色模式优化 */
-  /* 激活状态 - 跟随主题色，深色背景 */
+  /* Account card status colors - Dark mode optimized */
+  /* Active status - follows theme color, dark background */
   --card-active-bg: color-mix(in oklch, var(--color-primary) 15%, transparent);
   --card-active-border: color-mix(in oklch, var(--color-primary) 40%, transparent);
   --card-active-ring: color-mix(in oklch, var(--color-primary) 30%, transparent);
   --card-active-shadow: color-mix(in oklch, var(--color-primary) 15%, transparent);
   --card-active-accent: var(--color-primary);
 
-  /* 封禁状态 - 调整为深红色，增加透明度 */
+  /* Banned status - adjusted to dark red, increased transparency */
   --card-unauthorized-bg: rgba(69, 10, 10, 0.4);
   --card-unauthorized-border: rgba(239, 68, 68, 0.4);
   --card-unauthorized-ring: rgba(248, 113, 113, 0.2);
@@ -81,7 +81,7 @@
   --card-unauthorized-glow: rgba(239, 68, 68, 0.05);
 }
 
-/* 紫色主题 - 优雅、神秘 */
+/* Purple theme - Elegant, mysterious */
 .theme-purple {
   --color-primary: #a855f7;
   --color-ring: #a855f7;
@@ -91,7 +91,7 @@
   --color-ring: #c084fc;
 }
 
-/* 翠绿主题 - 清新、自然 */
+/* Emerald theme - Fresh, natural */
 .theme-emerald {
   --color-primary: #10b981;
   --color-ring: #10b981;
@@ -101,7 +101,7 @@
   --color-ring: #34d399;
 }
 
-/* 橙色主题 - 活力、温暖 */
+/* Orange theme - Vibrant, warm */
 .theme-orange {
   --color-primary: #f97316;
   --color-ring: #f97316;
@@ -111,7 +111,7 @@
   --color-ring: #fb923c;
 }
 
-/* 玫瑰主题 - 浪漫、柔和 */
+/* Rose theme - Romantic, soft */
 .theme-rose {
   --color-primary: #f43f5e;
   --color-ring: #f43f5e;
@@ -121,7 +121,7 @@
   --color-ring: #fb7185;
 }
 
-/* 青色主题 - 明快、科技 */
+/* Cyan theme - Bright, tech */
 .theme-cyan {
   --color-primary: #06b6d4;
   --color-ring: #06b6d4;
@@ -131,7 +131,7 @@
   --color-ring: #22d3ee;
 }
 
-/* 琥珀主题 - 尊贵、复古 */
+/* Amber theme - Noble, vintage */
 .theme-amber {
   --color-primary: #f59e0b;
   --color-ring: #f59e0b;
@@ -141,7 +141,7 @@
   --color-ring: #fbbf24;
 }
 
-/* 水鸭蓝主题 - 沉稳、专业 */
+/* Teal theme - Calm, professional */
 .theme-teal {
   --color-primary: #14b8a6;
   --color-ring: #14b8a6;
@@ -151,7 +151,7 @@
   --color-ring: #2dd4bf;
 }
 
-/* 靛蓝主题 - 深邃、智慧 */
+/* Indigo theme - Deep, wise */
 .theme-indigo {
   --color-primary: #6366f1;
   --color-ring: #6366f1;
@@ -161,7 +161,7 @@
   --color-ring: #818cf8;
 }
 
-/* 青柠主题 - 鲜活、生动 */
+/* Lime theme - Fresh, vivid */
 .theme-lime {
   --color-primary: #84cc16;
   --color-ring: #84cc16;
@@ -171,7 +171,7 @@
   --color-ring: #a3e635;
 }
 
-/* 粉红主题 - 甜美、温柔 */
+/* Pink theme - Sweet, gentle */
 .theme-pink {
   --color-primary: #ec4899;
   --color-ring: #ec4899;
@@ -181,7 +181,7 @@
   --color-ring: #f472b6;
 }
 
-/* 石板灰主题 - 低调、商务 */
+/* Slate theme - Low-key, business */
 .theme-slate {
   --color-primary: #64748b;
   --color-ring: #64748b;
@@ -191,7 +191,7 @@
   --color-ring: #94a3b8;
 }
 
-/* 锌灰主题 - 极简、冷淡 */
+/* Zinc theme - Minimal, cool */
 .theme-zinc {
   --color-primary: #71717a;
   --color-ring: #71717a;
@@ -201,7 +201,7 @@
   --color-ring: #a1a1aa;
 }
 
-/* 晴空蓝主题 - 天空、清透 */
+/* Sky theme - Clear, transparent */
 .theme-sky {
   --color-primary: #0ea5e9;
   --color-ring: #0ea5e9;
@@ -211,7 +211,7 @@
   --color-ring: #38bdf8;
 }
 
-/* 紫罗兰主题 - 梦幻、高贵 */
+/* Violet theme - Dreamy, noble */
 .theme-violet {
   --color-primary: #8b5cf6;
   --color-ring: #8b5cf6;
@@ -221,7 +221,7 @@
   --color-ring: #a78bfa;
 }
 
-/* 洋红主题 - 潮流、时尚 */
+/* Fuchsia theme - Trendy, fashionable */
 .theme-fuchsia {
   --color-primary: #d946ef;
   --color-ring: #d946ef;
@@ -231,7 +231,7 @@
   --color-ring: #e879f9;
 }
 
-/* 热情红主题 - 热烈、醒目 */
+/* Red theme - Passionate, striking */
 .theme-red {
   --color-primary: #ef4444;
   --color-ring: #ef4444;
@@ -241,7 +241,7 @@
   --color-ring: #f87171;
 }
 
-/* 明黄主题 - 阳光、乐观 */
+/* Yellow theme - Sunny, optimistic */
 .theme-yellow {
   --color-primary: #eab308;
   --color-ring: #eab308;
@@ -251,7 +251,7 @@
   --color-ring: #facc15;
 }
 
-/* 草绿主题 - 自然、健康 */
+/* Green theme - Natural, healthy */
 .theme-green {
   --color-primary: #22c55e;
   --color-ring: #22c55e;
@@ -261,7 +261,7 @@
   --color-ring: #4ade80;
 }
 
-/* 暖灰主题 - 柔和、自然 */
+/* Stone theme - Soft, natural */
 .theme-stone {
   --color-primary: #78716c;
   --color-ring: #78716c;
@@ -271,7 +271,7 @@
   --color-ring: #a8a29e;
 }
 
-/* 中性灰主题 - 纯净、平衡 */
+/* Neutral theme - Pure, balanced */
 .theme-neutral {
   --color-primary: #737373;
   --color-ring: #737373;
@@ -291,7 +291,7 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* 选中文本颜色适配主题 */
+/* Selection text color adapts to theme */
 ::selection {
   background-color: var(--color-primary);
   color: var(--color-primary-foreground);
@@ -318,7 +318,7 @@ body {
   background-color: var(--color-muted-foreground);
 }
 
-/* 当页面有主题色时，滚动条 hover 使用主题色 */
+/* When page has theme color, scrollbar hover uses theme color */
 body[class*="theme-"] ::-webkit-scrollbar-thumb:hover,
 body.dark[class*="theme-"] ::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-primary);

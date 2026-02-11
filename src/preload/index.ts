@@ -3,39 +3,39 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
-  // 打开外部链接
+  // Open external link
   openExternal: (url: string): void => {
     ipcRenderer.send('open-external', url)
   },
 
-  // 获取应用版本
+  // Get app version
   getAppVersion: (): Promise<string> => {
     return ipcRenderer.invoke('get-app-version')
   },
 
-  // ============ Kiro 进程管理 ============
+  // ============ Kiro Process Management ============
   
-  // 检测 Kiro 进程是否运行
+  // Check if Kiro process is running
   checkKiroRunning: (): Promise<{ running: boolean }> => {
     return ipcRenderer.invoke('check-kiro-running')
   },
 
-  // 自动检测 Kiro 安装路径
+  // Auto-detect Kiro installation path
   detectKiroPath: (): Promise<{ success: boolean; path: string }> => {
     return ipcRenderer.invoke('detect-kiro-path')
   },
 
-  // 启动 Kiro
+  // Launch Kiro
   launchKiro: (kiroPath: string): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('launch-kiro', kiroPath)
   },
 
-  // 选择 Kiro 可执行文件
+  // Select Kiro executable file
   selectKiroPath: (): Promise<{ success: boolean; path: string }> => {
     return ipcRenderer.invoke('select-kiro-path')
   },
 
-  // 监听 OAuth 回调
+  // Listen for OAuth callback
   onAuthCallback: (callback: (data: { code: string; state: string }) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: { code: string; state: string }): void => {
       callback(data)
@@ -46,27 +46,27 @@ const api = {
     }
   },
 
-  // 账号管理 - 加载账号数据
+  // Account management - Load account data
   loadAccounts: (): Promise<unknown> => {
     return ipcRenderer.invoke('load-accounts')
   },
 
-  // 账号管理 - 保存账号数据
+  // Account management - Save account data
   saveAccounts: (data: unknown): Promise<void> => {
     return ipcRenderer.invoke('save-accounts', data)
   },
 
-  // 账号管理 - 刷新 Token
+  // Account management - Refresh token
   refreshAccountToken: (account: unknown): Promise<unknown> => {
     return ipcRenderer.invoke('refresh-account-token', account)
   },
 
-  // 账号管理 - 检查账号状态
+  // Account management - Check account status
   checkAccountStatus: (account: unknown): Promise<unknown> => {
     return ipcRenderer.invoke('check-account-status', account)
   },
 
-  // 后台批量刷新账号（在主进程执行，不阻塞 UI）
+  // Background batch refresh accounts (runs in main process, doesn't block UI)
   backgroundBatchRefresh: (accounts: Array<{
     id: string
     email: string
@@ -82,7 +82,7 @@ const api = {
     return ipcRenderer.invoke('background-batch-refresh', accounts, concurrency)
   },
 
-  // 监听后台刷新进度
+  // Listen for background refresh progress
   onBackgroundRefreshProgress: (callback: (data: { completed: number; total: number; success: number; failed: number }) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: { completed: number; total: number; success: number; failed: number }): void => {
       callback(data)
@@ -93,7 +93,7 @@ const api = {
     }
   },
 
-  // 监听后台刷新结果（单个账号）
+  // Listen for background refresh result (single account)
   onBackgroundRefreshResult: (callback: (data: { id: string; success: boolean; data?: unknown; error?: string }) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: { id: string; success: boolean; data?: unknown; error?: string }): void => {
       callback(data)
@@ -104,7 +104,7 @@ const api = {
     }
   },
 
-  // 后台批量检查账号状态（不刷新 Token）
+  // Background batch check account status (without refreshing token)
   backgroundBatchCheck: (accounts: Array<{
     id: string
     email: string
@@ -122,7 +122,7 @@ const api = {
     return ipcRenderer.invoke('background-batch-check', accounts, concurrency)
   },
 
-  // 监听后台检查进度
+  // Listen for background check progress
   onBackgroundCheckProgress: (callback: (data: { completed: number; total: number; success: number; failed: number }) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: { completed: number; total: number; success: number; failed: number }): void => {
       callback(data)
@@ -133,7 +133,7 @@ const api = {
     }
   },
 
-  // 监听后台检查结果（单个账号）
+  // Listen for background check result (single account)
   onBackgroundCheckResult: (callback: (data: { id: string; success: boolean; data?: unknown; error?: string }) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: { id: string; success: boolean; data?: unknown; error?: string }): void => {
       callback(data)
@@ -144,7 +144,7 @@ const api = {
     }
   },
 
-  // 切换账号 - 写入凭证到本地 SSO 缓存
+  // Switch account - Write credentials to local SSO cache
   switchAccount: (credentials: {
     accessToken: string
     refreshToken: string
@@ -157,28 +157,28 @@ const api = {
     return ipcRenderer.invoke('switch-account', credentials)
   },
 
-  // 文件操作 - 导出到文件
+  // File operations - Export to file
   exportToFile: (data: string, filename: string): Promise<boolean> => {
     return ipcRenderer.invoke('export-to-file', data, filename)
   },
 
-  // 文件操作 - 批量导出到文件夹
+  // File operations - Batch export to folder
   exportToFolder: (files: Array<{ filename: string; content: string }>): Promise<{ success: boolean; count: number; folder?: string; error?: string }> => {
     return ipcRenderer.invoke('export-to-folder', files)
   },
 
-  // 文件操作 - 从文件导入
+  // File operations - Import from file
   importFromFile: (): Promise<string | null> => {
     return ipcRenderer.invoke('import-from-file')
   },
 
-  // 验证凭证并获取账号信息
+  // Verify credentials and get account info
   verifyAccountCredentials: (credentials: {
     refreshToken: string
     clientId: string
     clientSecret: string
     region?: string
-    authMethod?: string  // 'IdC' 或 'social'
+    authMethod?: string  // 'IdC' or 'social'
     provider?: string    // 'BuilderId', 'Github', 'Google'
   }): Promise<{
     success: boolean
@@ -199,7 +199,7 @@ const api = {
     return ipcRenderer.invoke('verify-account-credentials', credentials)
   },
 
-  // 获取本地 SSO 缓存中当前使用的账号信息
+  // Get currently active account info from local SSO cache
   getLocalActiveAccount: (): Promise<{
     success: boolean
     data?: {
@@ -213,7 +213,7 @@ const api = {
     return ipcRenderer.invoke('get-local-active-account')
   },
 
-  // 从 Kiro 本地配置导入凭证
+  // Import credentials from Kiro local config
   loadKiroCredentials: (): Promise<{
     success: boolean
     data?: {
@@ -222,7 +222,7 @@ const api = {
       clientId: string
       clientSecret: string
       region: string
-      authMethod: string  // 'IdC' 或 'social'
+      authMethod: string  // 'IdC' or 'social'
       provider: string    // 'BuilderId', 'Github', 'Google'
     }
     error?: string
@@ -230,7 +230,7 @@ const api = {
     return ipcRenderer.invoke('load-kiro-credentials')
   },
 
-  // 从 AWS SSO Token (x-amz-sso_authn) 导入账号
+  // Import account from AWS SSO Token (x-amz-sso_authn)
   importFromSsoToken: (bearerToken: string, region?: string): Promise<{
     success: boolean
     data?: {
@@ -250,9 +250,9 @@ const api = {
     return ipcRenderer.invoke('import-from-sso-token', bearerToken, region || 'us-east-1')
   },
 
-  // ============ 手动登录 API ============
+  // ============ Manual Login API ============
 
-  // 启动 Builder ID 手动登录
+  // Start Builder ID manual login
   startBuilderIdLogin: (region?: string): Promise<{
     success: boolean
     userCode?: string
@@ -264,7 +264,7 @@ const api = {
     return ipcRenderer.invoke('start-builder-id-login', region || 'us-east-1')
   },
 
-  // 轮询 Builder ID 授权状态
+  // Poll Builder ID authorization status
   pollBuilderIdAuth: (region?: string): Promise<{
     success: boolean
     completed?: boolean
@@ -280,12 +280,12 @@ const api = {
     return ipcRenderer.invoke('poll-builder-id-auth', region || 'us-east-1')
   },
 
-  // 取消 Builder ID 登录
+  // Cancel Builder ID login
   cancelBuilderIdLogin: (): Promise<{ success: boolean }> => {
     return ipcRenderer.invoke('cancel-builder-id-login')
   },
 
-  // 启动 Social Auth 登录 (Google/GitHub)
+  // Start Social Auth login (Google/GitHub)
   startSocialLogin: (provider: 'Google' | 'Github'): Promise<{
     success: boolean
     loginUrl?: string
@@ -295,7 +295,7 @@ const api = {
     return ipcRenderer.invoke('start-social-login', provider)
   },
 
-  // 交换 Social Auth token
+  // Exchange Social Auth token
   exchangeSocialToken: (code: string, state: string): Promise<{
     success: boolean
     accessToken?: string
@@ -309,12 +309,12 @@ const api = {
     return ipcRenderer.invoke('exchange-social-token', code, state)
   },
 
-  // 取消 Social Auth 登录
+  // Cancel Social Auth login
   cancelSocialLogin: (): Promise<{ success: boolean }> => {
     return ipcRenderer.invoke('cancel-social-login')
   },
 
-  // 监听 Social Auth 回调
+  // Listen for Social Auth callback
   onSocialAuthCallback: (callback: (data: { code?: string; state?: string; error?: string }) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: { code?: string; state?: string; error?: string }): void => {
       callback(data)
@@ -325,19 +325,19 @@ const api = {
     }
   },
 
-  // 代理设置
+  // Proxy settings
   setProxy: (enabled: boolean, url: string): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('set-proxy', enabled, url)
   },
 
-  // ============ 机器码管理 API ============
+  // ============ Machine ID Management API ============
 
-  // 获取操作系统类型
+  // Get operating system type
   machineIdGetOSType: (): Promise<'windows' | 'macos' | 'linux' | 'unknown'> => {
     return ipcRenderer.invoke('machine-id:get-os-type')
   },
 
-  // 获取当前机器码
+  // Get current machine ID
   machineIdGetCurrent: (): Promise<{
     success: boolean
     machineId?: string
@@ -347,7 +347,7 @@ const api = {
     return ipcRenderer.invoke('machine-id:get-current')
   },
 
-  // 设置新机器码
+  // Set new machine ID
   machineIdSet: (newMachineId: string): Promise<{
     success: boolean
     machineId?: string
@@ -357,27 +357,27 @@ const api = {
     return ipcRenderer.invoke('machine-id:set', newMachineId)
   },
 
-  // 生成随机机器码
+  // Generate random machine ID
   machineIdGenerateRandom: (): Promise<string> => {
     return ipcRenderer.invoke('machine-id:generate-random')
   },
 
-  // 检查管理员权限
+  // Check admin privileges
   machineIdCheckAdmin: (): Promise<boolean> => {
     return ipcRenderer.invoke('machine-id:check-admin')
   },
 
-  // 请求管理员权限重启
+  // Request admin restart
   machineIdRequestAdminRestart: (): Promise<boolean> => {
     return ipcRenderer.invoke('machine-id:request-admin-restart')
   },
 
-  // 备份机器码到文件
+  // Backup machine ID to file
   machineIdBackupToFile: (machineId: string): Promise<boolean> => {
     return ipcRenderer.invoke('machine-id:backup-to-file', machineId)
   },
 
-  // 从文件恢复机器码
+  // Restore machine ID from file
   machineIdRestoreFromFile: (): Promise<{
     success: boolean
     machineId?: string
@@ -386,9 +386,9 @@ const api = {
     return ipcRenderer.invoke('machine-id:restore-from-file')
   },
 
-  // ============ 自动更新 ============
+  // ============ Auto Update ============
   
-  // 检查更新 (electron-updater)
+  // Check for updates (electron-updater)
   checkForUpdates: (): Promise<{
     hasUpdate: boolean
     version?: string
@@ -399,7 +399,7 @@ const api = {
     return ipcRenderer.invoke('check-for-updates')
   },
 
-  // 手动检查更新 (GitHub API, 用于 AboutPage)
+  // Manual check for updates (GitHub API, for AboutPage)
   checkForUpdatesManual: (): Promise<{
     hasUpdate: boolean
     currentVersion?: string
@@ -418,17 +418,17 @@ const api = {
     return ipcRenderer.invoke('check-for-updates-manual')
   },
 
-  // 下载更新
+  // Download update
   downloadUpdate: (): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('download-update')
   },
 
-  // 安装更新并重启
+  // Install update and restart
   installUpdate: (): Promise<void> => {
     return ipcRenderer.invoke('install-update')
   },
 
-  // 监听更新事件
+  // Listen for update events
   onUpdateChecking: (callback: () => void): (() => void) => {
     const handler = (): void => callback()
     ipcRenderer.on('update-checking', handler)
@@ -465,9 +465,9 @@ const api = {
     return () => ipcRenderer.removeListener('update-error', handler)
   },
 
-  // ============ Kiro 设置管理 ============
+  // ============ Kiro Settings Management ============
 
-  // 获取 Kiro 设置
+  // Get Kiro settings
   getKiroSettings: (): Promise<{
     settings?: Record<string, unknown>
     mcpConfig?: { mcpServers: Record<string, unknown> }
@@ -477,66 +477,66 @@ const api = {
     return ipcRenderer.invoke('get-kiro-settings')
   },
 
-  // 保存 Kiro 设置
+  // Save Kiro settings
   saveKiroSettings: (settings: Record<string, unknown>): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('save-kiro-settings', settings)
   },
 
-  // 打开 Kiro MCP 配置文件
+  // Open Kiro MCP config file
   openKiroMcpConfig: (type: 'user' | 'workspace'): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('open-kiro-mcp-config', type)
   },
 
-  // 打开 Kiro Steering 目录
+  // Open Kiro Steering folder
   openKiroSteeringFolder: (): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('open-kiro-steering-folder')
   },
 
-  // 打开 Kiro settings.json 文件
+  // Open Kiro settings.json file
   openKiroSettingsFile: (): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('open-kiro-settings-file')
   },
 
-  // 打开指定的 Steering 文件
+  // Open specified Steering file
   openKiroSteeringFile: (filename: string): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('open-kiro-steering-file', filename)
   },
 
-  // 创建默认的 rules.md 文件
+  // Create default rules.md file
   createKiroDefaultRules: (): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('create-kiro-default-rules')
   },
 
-  // 读取 Steering 文件内容
+  // Read Steering file content
   readKiroSteeringFile: (filename: string): Promise<{ success: boolean; content?: string; error?: string }> => {
     return ipcRenderer.invoke('read-kiro-steering-file', filename)
   },
 
-  // 保存 Steering 文件内容
+  // Save Steering file content
   saveKiroSteeringFile: (filename: string, content: string): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('save-kiro-steering-file', filename, content)
   },
 
-  // 删除 Steering 文件
+  // Delete Steering file
   deleteKiroSteeringFile: (filename: string): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('delete-kiro-steering-file', filename)
   },
 
-  // ============ MCP 服务器管理 ============
+  // ============ MCP Server Management ============
 
-  // 保存 MCP 服务器配置
+  // Save MCP server config
   saveMcpServer: (name: string, config: { command: string; args?: string[]; env?: Record<string, string> }, oldName?: string): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('save-mcp-server', name, config, oldName)
   },
 
-  // 删除 MCP 服务器
+  // Delete MCP server
   deleteMcpServer: (name: string): Promise<{ success: boolean; error?: string }> => {
     return ipcRenderer.invoke('delete-mcp-server', name)
   },
 
-  // ============ AWS 自动注册 API ============
+  // ============ AWS Auto-Register API ============
 
-  // 自动注册 AWS Builder ID
+  // Auto-register AWS Builder ID
   autoRegisterAWS: (params: {
     email: string
     emailPassword: string
@@ -553,7 +553,7 @@ const api = {
     return ipcRenderer.invoke('auto-register-aws', params)
   },
 
-  // 仅激活 Outlook 邮箱
+  // Activate Outlook email only
   activateOutlook: (params: {
     email: string
     emailPassword: string
@@ -564,7 +564,7 @@ const api = {
     return ipcRenderer.invoke('activate-outlook', params)
   },
 
-  // 监听自动注册日志
+  // Listen for auto-register logs
   onAutoRegisterLog: (callback: (data: { email: string; message: string }) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: { email: string; message: string }): void => {
       callback(data)
@@ -575,7 +575,7 @@ const api = {
     }
   },
 
-  // 获取 Outlook 邮箱验证码
+  // Get Outlook email verification code
   getOutlookVerificationCode: (params: {
     email: string
     refreshToken: string
@@ -591,16 +591,16 @@ const api = {
     return ipcRenderer.invoke('get-outlook-verification-code', params)
   },
 
-  // 打开文件选择对话框
+  // Open file selection dialog
   openFile: (options?: {
     filters?: Array<{ name: string; extensions: string[] }>
   }): Promise<{ content: string; path: string } | null> => {
     return ipcRenderer.invoke('open-file-dialog', options)
   },
 
-  // ============ Kiro 服务器导入 API ============
+  // ============ Kiro Server Import API ============
 
-  // 导入账号到 Kiro 服务器
+  // Import accounts to Kiro server
   importToKiroServer: (params: {
     serverUrl: string
     password: string
@@ -624,7 +624,7 @@ const api = {
     return ipcRenderer.invoke('import-to-kiro-server', params)
   },
 
-  // 测试 Kiro 服务器连接
+  // Test Kiro server connection
   testKiroServerConnection: (serverUrl: string, password: string): Promise<{
     success: boolean
     error?: string
